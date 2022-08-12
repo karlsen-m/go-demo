@@ -28,6 +28,11 @@ type wsMessage struct {
 	data []byte
 }
 
+type RedisMessage struct {
+	MessageType int
+	Data string
+}
+
 // 客户端连接
 type wsConnection struct {
 	wsSocket *websocket.Conn // 底层websocket
@@ -84,7 +89,7 @@ func (wsConn *wsConnection)procLoop() {
 	// 启动一个gouroutine发送心跳
 	go func() {
 		for {
-			time.Sleep(5 * time.Second)
+			time.Sleep(15 * time.Second)
 			if err := wsConn.wsWrite(websocket.TextMessage, []byte("heartbeat from server")); err != nil {
 				fmt.Println("heartbeat fail")
 				wsConn.wsClose()
@@ -100,9 +105,15 @@ func (wsConn *wsConnection)procLoop() {
 				fmt.Println("read fail")
 				break
 			}
-			reqByte,_ := json.Marshal(msg)
+			m := RedisMessage{
+				MessageType: msg.messageType,
+				Data:        string(msg.data),
+			}
+			reqByte,err := json.Marshal(&m)
+			if err != nil {
+				panic(err)
+			}
 			_ = setMessageToRedisList(string(reqByte))
-			fmt.Println("read message:", string(msg.data))
 		}
 	}()
 
@@ -116,14 +127,18 @@ func (wsConn *wsConnection)procLoop() {
 				time.Sleep(200 * time.Millisecond)
 				continue
 			}else{
-				msgArr := getMessageToRedisList(nowUnix)
+				unixTime = nowUnix-2
+				msgArr := getMessageToRedisList(unixTime)
 				if len(msgArr) > 0 {
+					fmt.Println("msgArrLeng:", len(msgArr))
 					for _,v := range msgArr{
-						msg := &wsMessage{}
+						msg := RedisMessage{}
 						_ = json.Unmarshal([]byte(v), &msg)
-						err := wsConn.wsWrite(msg.messageType, msg.data)
+						fmt.Println("send msg:", msg)
+						err := wsConn.wsWrite(msg.MessageType, []byte(msg.Data))
 						if err != nil {
 							fmt.Println("write fail")
+							wsConn.wsClose()
 							isErr = true
 							break
 						}
@@ -137,16 +152,16 @@ func (wsConn *wsConnection)procLoop() {
 	}()
 }
 
-func (wsConn *wsConnection)wsReadMessage() (err error){
-	msg, err := wsConn.wsRead()
-	if err != nil {
-		fmt.Println("read fail")
-		return errors.New("read fail")
-	}
-	reqByte,_ := json.Marshal(msg)
-	_ = setMessageToRedisList(string(reqByte))
-	return
-}
+//func (wsConn *wsConnection)wsReadMessage() (err error){
+//	msg, err := wsConn.wsRead()
+//	if err != nil {
+//		fmt.Println("read fail")
+//		return errors.New("read fail")
+//	}
+//	reqByte,_ := json.Marshal(msg)
+//	_ = setMessageToRedisList(string(reqByte))
+//	return
+//}
 
 func WsHandler(resp http.ResponseWriter, req *http.Request) {
 	// 应答客户端告知升级连接为websocket
