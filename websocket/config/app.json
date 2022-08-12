@@ -1,0 +1,62 @@
+{
+    "Name": "giftbagcasual.rpc",
+    "ListenOn": "0.0.0.0:5042",
+    "Timeout": 30000,
+    "appEnv": "local",
+    "appDebug": true,
+    "appName": "giftbagcasual",
+    "appEnName": "giftbagcasual-service",
+    "driver": {
+        "mysql": "default",
+        "redis": "default",
+        "jaeger": "default",
+        "es": "default"
+    },
+    "mysql": {
+        "default": {
+            "database": "seller",
+            "prefix": "giftbagcasual_",
+            "connMaxLifetime": 3600,
+            "host": "127.0.0.1",
+            "port": 33060,
+            "username": "root",
+            "password": "123456"
+        }
+    },
+    "redis": {
+        "default": {
+            "host": "127.0.0.1",
+            "port": 6379,
+            "password": "",
+            "database": 0
+        },
+        "excel": {
+            "host": "127.0.0.1",
+            "port": 6379,
+            "password": "",
+            "database": 0
+        }
+    },
+    "jaeger": {
+        "default": {
+            "host": "127.0.0.1",
+            "port": 6831
+        }
+    },
+    "es": {
+        "default": {
+            "addr": "http://127.0.0.1:9200",
+            "username": "elastic",
+            "password": "changeme"
+        }
+    },
+    "appConfig": {
+        "log": {
+            "email": {
+                "tos": [
+                    "1154670797@qq.com"
+                ]
+            }
+        }
+    }
+}
