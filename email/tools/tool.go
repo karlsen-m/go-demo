@@ -19,6 +19,11 @@ type Config struct {
 	auth     smtp.Auth
 }
 
+/*
+	*@普通邮箱明文发送邮件，（明文：不支持tls，ssl安全认证的smtp协议,端口是25，传输中会被抓取用户名和密码）
+*/
+
+
 func init() {
 	c = &Config{
 		Host:     "smtp.qq.com",

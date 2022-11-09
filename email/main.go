@@ -1,26 +1,49 @@
 package main
 
-/*   //发送普通html页面邮件
+import (
+	"bytes"
+	"email/tlstools"
+	"encoding/csv"
+	"fmt"
+	"io/ioutil"
+)
 
 func main() {
+	//subject, body := genHtml()
+	//err := tlstools.SendHtml([]string{"1154670797@qq.com","1952771157@qq.com"},subject,body)
+	//if err != nil {
+	//	panic(err)
+	//}
+	err := SmtpQqComPushHtml()
+	if err != nil {
+		panic(err)
+	}
+	err = SmtpQqComPushFileByData()
+	if err != nil {
+		panic(err)
+	}
+	err = SmtpQqComPushFileByFile()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(123)
+}
+
+//发送html页面邮件
+func SmtpQqComPushHtml() error {
 	subject, body := genHtml()
-	m := tools.Message{
-		From:        "1154670797@qq.com",
-		To:          []string{"1154670797@qq.com", "568089002@qq.com"},
-		CC:          []string{},
-		BCC:         []string{},
-		Subject:     subject,
+	m := tlstools.Message{
 		Body:        body,
 		ContentType: "text/html; charset=UTF-8",
-		Attachment: tools.Attachment{
+		Attachment: tlstools.Attachment{
 			File:        []byte{},
-			Name:        "",
-			ContentType: "",
+			Name:        "test",
+			ContentType: "text/html; charset=UTF-8",
 			WithFile:    false,
 		},
 	}
-	err := tools.Send(m)
-	fmt.Println(err)
+	return tlstools.Send([]string{"1154670797@qq.com","1952771157@qq.com"},subject,m)
+
 }
 
 //生成邮件html
@@ -33,20 +56,15 @@ func genHtml() (subject, body string) {
 
 
 
-*/
 
-/*  //从数据发送附件邮件
 
-func main() {
-	m := tools.Message{
-		From:        "1154670797@qq.com",
-		To:          []string{"1154670797@qq.com", "568089002@qq.com"},
-		CC:          []string{},
-		BCC:         []string{},
-		Subject:     "微信礼包活动数据推送",
+
+//从数据发送附件邮件
+func SmtpQqComPushFileByData() error{
+	m := tlstools.Message{
 		Body:        "",
 		ContentType: "text/plain;charset=utf-8",
-		Attachment: tools.Attachment{
+		Attachment: tlstools.Attachment{
 			File:        []byte{},
 			Name:        "测试2.csv",
 			ContentType: "text/csv;charset=UTF-8",
@@ -59,40 +77,29 @@ func main() {
 	_ = w.Write([]string{"我是标题", "我是内容"})
 	w.Flush()
 	m.Attachment.File = b.Bytes()
-	err := tools.Send(m)
-	fmt.Println(err)
+	return tlstools.Send([]string{"1154670797@qq.com","1952771157@qq.com"},"微信礼包活动数据推送",m)
 }
 
 
-*/
-
-/*
-
 //从文件发送附件邮件
-func main() {
-	m := tools.Message{
-		From:        "1154670797@qq.com",
-		To:          []string{"1154670797@qq.com"},
-		CC:          []string{},
-		BCC:         []string{},
-		Subject:     "微信礼包活动数据推送",
+func SmtpQqComPushFileByFile() error {
+	m := tlstools.Message{
 		Body:        "",
 		ContentType: "text/plain;charset=utf-8",
-		Attachment: tools.Attachment{
+		Attachment: tlstools.Attachment{
 			File:        []byte{},
 			Name:        "测试2.csv",
 			ContentType: "text/csv;charset=UTF-8",
 			WithFile:    true,
 		},
 	}
-	file, err := ioutil.ReadFile("./admin.csv")
+	file, err := ioutil.ReadFile("./test.csv")
 	if err != nil {
 		fmt.Println(err)
 	}
 	m.Attachment.File = file
-	err = tools.Send(m)
-	fmt.Println(err)
+	return tlstools.Send([]string{"1154670797@qq.com","1952771157@qq.com"},"微信礼包活动数据推送",m)
+
 }
 
 
-*/
