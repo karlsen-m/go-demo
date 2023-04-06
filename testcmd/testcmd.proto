@@ -1,0 +1,62 @@
+syntax = "proto3";
+package testcmd;
+option go_package="./testcmd";
+service Testcmd {
+  rpc Ping(PingReq) returns(PingRes){};
+  rpc GetCouponList(GetCouponListReq) returns(GetCouponListRes){};
+  rpc Issues(IssuesReq) returns(IssuesRes){};
+}
+
+message PingReq {
+}
+
+message PingRes {
+  MetaRes meta = 1;
+}
+
+message MetaRes {
+  string requestId = 1;
+  int32 code = 2;
+  string msg = 3;
+}
+
+message IssuesReq {
+  WxUser wxUser = 1;
+  string id = 2;
+  string channelId = 3;
+}
+message IssuesRes {
+  MetaRes meta = 1;
+}
+
+message GetCouponListReq {
+  WxUser wxUser = 1;
+}
+
+message GetCouponListRes {
+  MetaRes meta = 1;
+  CouponListData data = 2;
+}
+message CouponListData {
+  string total = 1;
+  repeated Coupon coupons = 2;
+}
+message Coupon {
+  string id = 1;
+  string name = 2;
+  string imageUrl = 3;
+  string num = 4;
+  string couponAmount = 5;
+  string transactionMiniAmount = 6;
+}
+
+message WxUser {
+  string wxUnionId = 1;
+  string wxMiniAppId = 2;
+  string wxMiniOpenId = 3;
+  string wxMobile = 4;
+  string userId = 5;
+  string wxNickname = 6;
+  string wxAvatar = 7;
+}
+
