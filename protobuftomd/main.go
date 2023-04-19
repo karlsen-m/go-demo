@@ -15,7 +15,11 @@ func main() {
 		message Test {
 			string ageName = 1;
 		}
+		message Test1 {
+			string ageName = 1;
+		}
 		Test test = 3;
+		Test1 test1 = 4;
 	  }
 	  Sub sub = 2;
 	}`
@@ -26,7 +30,7 @@ func main() {
 func extractMessages(str string) []string {
 	var messages []string
 	isComment := strings.Contains(str, "\n")
-	comment := []string{}
+	comment := make([]string, 0)
 	if isComment {
 		comment = strings.Split(str, "\n")
 	}
@@ -38,39 +42,49 @@ func extractMessages(str string) []string {
 					//有嵌套，往下找最近的}花括号
 					c1EndNum := 0
 					for j, c1 := range comment[i:] {
-
-						if strings.Contains(c1, "message") {
-							//有嵌套，往下找最近的}花括号
-							for k, c2 := range comment[i+j:] {
-								//if strings.Contains(c2, "message") {
-								//	//有嵌套，往下找最近的}花括号
-								//	for l, c3 := range comment[i+j+k:] {
-								//		if strings.Contains(c3, "}") {
-								//			//找到了最近的}花括号
-								//			data = append(data, comment[i:i+j+k+l])
-								//			break
-								//		}
-								//	}
-								//}
-								if strings.Contains(c2, "}") {
-									//找到了最近的}花括号
-									test := comment[i+j : i+j+k+1]
-									c1EndNum = i + j + k + 1
-									data = append(data, test)
-									break
+						if j > 0 {
+							if strings.Contains(c1, "message") {
+								//有嵌套，往下找最近的}花括号
+								for k, c2 := range comment[i+j:] {
+									//if strings.Contains(c2, "message") {
+									//	//有嵌套，往下找最近的}花括号
+									//	for l, c3 := range comment[i+j+k:] {
+									//		if strings.Contains(c3, "}") {
+									//			//找到了最近的}花括号
+									//			data = append(data, comment[i:i+j+k+l])
+									//			break
+									//		}
+									//	}
+									//}
+									if strings.Contains(c2, "}") {
+										//找到了最近的}花括号
+										commentTest := make([]string, len(comment))
+										copy(commentTest, comment)
+										test := commentTest[i+j : i+j+k+1]
+										comment = append(comment[:i+j], comment[i+j+k+1:]...)
+										c1EndNum = i + j + k + 1
+										data = append(data, test)
+										break
+									}
 								}
 							}
 						}
 						if strings.Contains(c1, "}") {
 							if c1EndNum == 0 {
 								//没嵌套
-								sub := comment[i : i+j+1]
+								commentTest := make([]string, len(comment))
+								copy(commentTest, comment)
+								sub := commentTest[i : i+j+1]
+								comment = append(comment[:i], comment[i+j+1:]...)
 								data = append(data, sub)
 								break
 							} else {
 								//有嵌套
 								if i+j+1 != c1EndNum {
-									sub := comment[i : i+j+1]
+									commentTest := make([]string, len(comment))
+									copy(commentTest, comment)
+									sub := commentTest[i : i+j+1]
+									comment = append(comment[:i], comment[i+j+1:]...)
 									data = append(data, sub)
 									break
 								}
@@ -82,6 +96,7 @@ func extractMessages(str string) []string {
 
 			}
 		}
+		data = append(data, comment)
 	}
 
 	for _, d := range data {
