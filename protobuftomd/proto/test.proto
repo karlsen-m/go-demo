@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package template;
+
+option go_package="./test";
+service Giftbagcasual {
+  rpc Ping(PingReq) returns(PingRes){};
+  rpc GetGiftbag(GetGiftbagReq) returns(GetGiftbagRes){};
+}
+//message PingReq{
+//  string name = 1;
+//}
+message PingReq {
+  string name = 1;
+  message Sub {
+    string age = 1;//age
+    message Test {
+      string nameTest = 1;
+    }
+  }
+  Sub sub = 2;//sub
+}
+message PingRes {
+  string name = 1;
+  message Sub {
+    string age = 1;
+  }
+  Sub sub = 2;
+}
+message Operator {
+  bool isSuper = 1;
+  string userId = 2;
+  string mobile = 3;
+  string name = 4;
+  string orgId = 5;
+  string channelId = 6;
+}
+message GetGiftbagReq {
+  string name = 1;//name
+  Operator operator = 2;//operator
+}
+message GetGiftbagRes {
+  MetaRes meta = 1;
+}
+//响应码
+message MetaRes {
+  //错误码
+  string requestId = 1;
+  int32 code = 2;
+  string msg = 3;
+}

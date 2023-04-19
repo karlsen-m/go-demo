@@ -1,0 +1,1317 @@
+syntax = "proto3";
+package giftbagcasual;
+option go_package="./giftbagcasual";
+service Giftbagcasual {
+    rpc Ping(PingReq) returns(PingRes){};
+
+
+    // 创建活动
+    rpc CreateActivity(CreateActivityReq) returns (CreateActivityRes) {}
+    // 获取活动列表
+    rpc GetActivityList(GetActivityListReq) returns (GetActivityListRes) {}
+    // 获取活动领取数据列表
+    rpc GetActivityReceiveList(GetActivityReceiveListReq) returns (GetActivityReceiveListRes) {}
+    //获取所有活动领取数据
+    rpc GetAllReceiveList(GetAllReceiveListReq) returns (GetAllReceiveListRes) {}
+    // 获取活动详情
+    rpc GetActivityDetail(GetActivityDetailReq) returns (GetActivityDetailRes) {}
+    // 编辑活动
+    rpc EditActivity(EditActivityReq) returns (EditActivityRes) {}
+    // 关闭/开启活动
+    rpc SwitchActivity(SwitchActivityReq) returns (SwitchActivityRes) {}
+    // 删除活动
+    rpc DeleteActivity(DeleteActivityReq) returns (DeleteActivityRes) {}
+    //删除领取记录
+    rpc DeleteReceive(DeleteReceiveReq) returns (DeleteReceiveRes) {}
+    // 获取结算金额接口
+    rpc GetSettleNum(GetSettleNumReq) returns (GetSettleNumRes) {}
+    // 结算接口
+    rpc SettleActivity(SettleActivityReq) returns (SettleActivityRes) {}
+    // 调整活动预算
+    rpc EditActivityNum(EditActivityNumReq) returns (EditActivityNumRes) {}
+    // 审核活动
+    rpc AuditActivity(AuditActivityReq) returns (AuditActivityRes) {}
+    // 分配金额
+    rpc Allot(AllotReq) returns (AllotRes){}
+    // 回收金额
+    rpc Recycle(RecycleReq) returns (RecycleRes) {}
+    // 获取网点分配记录列表
+    rpc GetAllotList(GetAllotListReq) returns (GetAllotListRes) {}
+    // 获取网点分配历史记录列表
+    rpc GetAllotRecordList(GetAllotRecordListReq) returns (GetAllotRecordListRes) {}
+    // 获取所选网点可分配的网点 树状图
+    rpc GetCanAllotList(GetCanAllotListReq) returns (GetCanAllotListRes) {}
+    // 获取所选网点可回收的网点 树状图
+    rpc GetCanRecycleList(GetCanRecycleListReq) returns (GetCanRecycleListRes) {}
+    // 获取分配领取数据列表
+    rpc GetAllotReceiveList(GetAllotReceiveListReq) returns (GetAllotReceiveListRes) {}
+    rpc EditGivingTicket(EditGivingTicketReq) returns (EditGivingTicketRes) {}
+    rpc EditRecipient(EditRecipientReq) returns (EditRecipientRes) {}
+
+    //标签
+    rpc TagsEdit(TagsCreateReq) returns(TagsEditResp){};
+    rpc TagsList(TagsListReq) returns (TagsListResp){};
+    rpc TagsDtails(TagsDtailsReq) returns (TagsDtailsResp){};
+    rpc TagsDelete(TagsDeleteReq) returns (TagsDeleteResp){};
+    rpc Refund(RefundReq) returns (RefundRes) {}
+
+
+    // 小程序端接口
+    // 通过活动id获取基础数据
+    rpc GetActivityFromMini(GetActivityFromMiniReq) returns (GetActivityFromMiniRes) {}
+    // 通过派发no获取基础数据
+    rpc GetActivityFromMiniWithIssueNo(GetActivityFromMiniWithIssueNoReq) returns (GetActivityFromMiniWithIssueNoRes) {}
+    // 员工端
+    // 获取员工派发数据面板
+    rpc GetMarketerIssuePanel(GetMarketerIssuePanelReq) returns (GetMarketerIssuePanelRes) {}
+    // 员工派发接口
+    rpc MarketerIssue(MarketerIssueReq) returns (MarketerIssueRes) {}
+    // 获取员工统计页面数据面板
+    rpc GetMarketerReceiveList(GetMarketerReceiveListReq) returns (GetMarketerReceiveListRes) {}
+    //员工补录
+    rpc MarketerSupplementReceive(MarketerSupplementReceiveReq) returns (MarketerSupplementReceiveRes) {}
+    rpc MarketerSupplementVerifySms(MarketerSupplementVerifySmsReq) returns (MarketerSupplementVerifySmsRes) {}
+
+    // 员工获取活动列表
+    rpc GetMarketerActivityListByStatus(GetMarketerActivityListByStatusReq) returns (GetMarketerActivityListByStatusResp) {}
+    //员工获取领取详情
+    rpc GetMarketerReceiveDetail(GetMarketerReceiveDetailReq) returns (GetMarketerReceiveDetailRes) {}
+    //员工发起退款
+    rpc MarketerRefund(MarketerRefundReq) returns (MarketerRefundRes) {}
+
+    // 用户端
+    // 用户领取接口
+    rpc WxMiniUserReceive(WxMiniUserReceiveReq) returns (WxMiniUserReceiveRes) {}
+    // 根据领取记录id获取领取数据详情
+    rpc GetReceiveDetail(GetReceiveDetailReq) returns (GetReceiveDetailRes) {}
+    // 获取领取记录列表
+    rpc GetReceiveList(GetReceiveListReq) returns (GetReceiveListRes) {}
+    rpc GivingTicket(GivingTicketReq) returns (GivingTicketRes) {}
+    rpc Verify(VerifyReq) returns (VerifyRes) {}
+    rpc RecipientAddress(RecipientAddressReq) returns (RecipientAddressRes) {}
+    rpc MiniUserPayNotify(MiniUserPayNotifyReq) returns (MiniUserPayNotifyRes) {}
+    rpc MiniUserRefundPayNotify(MiniUserRefundPayNotifyReq) returns (MiniUserRefundPayNotifyRes) {}
+    rpc DevCallback(DevCallbackReq) returns (DevCallbackRes) {}
+    //RechargeCallback充值回调
+    rpc RechargeCallback(RechargeCallbackReq)returns(RechargeCallbackRes){};
+
+
+
+
+}
+
+message TagsDtailsReq{
+    string id = 1;
+}
+message TagsDtailsResp{
+    MetaRes meta = 1;
+    TagsDetail data = 2;
+}
+
+message ActEventData {
+    string eventType = 1;
+    string eventId = 2;
+}
+
+message MarketerSupplementVerifySmsReq {
+    string mobile = 1;
+    string identity = 2;
+    string actId = 3;
+    string realName = 4;
+}
+message MarketerSupplementVerifySmsRes {
+    MetaRes meta = 1;
+    MarketerSupplementVerifySmsData data = 2;
+}
+message MarketerSupplementVerifySmsData {
+    string duration = 1;
+}
+message RechargeCallbackReq{
+    string data = 1;
+}
+message  RechargeCallbackRes{
+    MetaRes meta = 1;
+}
+
+message MiniUserRefundPayNotifyReq {
+    string orderNo = 1;
+    string notifyData = 2;
+}
+message MiniUserRefundPayNotifyRes {
+    MetaRes meta = 1;
+}
+
+message RefundReq {
+    string id = 1;
+    Operator operator = 2;
+}
+message RefundRes {
+    MetaRes meta = 1;
+}
+
+message MarketerRefundReq {
+    string id = 1;
+    Marketer marketer = 2;
+}
+
+message MarketerRefundRes {
+    MetaRes meta = 1;
+}
+
+message GetMarketerReceiveDetailReq {
+    string id = 1;
+    Marketer marketer = 2;
+}
+message GetMarketerReceiveDetailRes {
+    MetaRes meta = 1;
+    GetReceiveDetailResData data = 2;
+
+}
+
+message DevCallbackReq {
+    WxUser wxUser = 1;
+    string id = 2;
+    bool paySuccess = 3;
+}
+message DevCallbackRes{
+    MetaRes meta = 1;
+}
+
+message MiniUserPayNotifyReq {
+        string orderNo = 1;
+        string notifyData = 2;
+}
+message MiniUserPayNotifyRes {
+    MetaRes meta = 1;
+}
+
+message EditRecipientReq {
+    Operator operator = 1;
+    string recipientName = 2;
+    string recipientMobile = 3;
+    string recipientAddress = 4;
+    string receiveId = 5;
+}
+message EditRecipientRes {
+    MetaRes meta = 1;
+    ReceiveAllData data = 2;
+}
+
+
+
+message EditGivingTicketReq {
+    string receiveId = 1;
+    repeated AdminGivingTicketData editGivingTicketInfo = 2;
+    Operator operator = 3;
+}
+message EditGivingTicketRes {
+    MetaRes meta = 1;
+    EditGivingTicketResData data = 2;
+}
+message EditGivingTicketResData {
+    repeated AdminGivingTicketData editGivingTicketInfo = 1;
+}
+
+message DeleteReceiveReq {
+    Operator operator = 1;
+    string id = 2;
+}
+
+message DeleteReceiveRes{
+    MetaRes meta = 1;
+}
+
+message RecipientAddressReq {
+    WxUser wxUser = 1;
+    string id = 2;
+    string recipientName = 3;
+    string recipientMobile = 4;
+    string address = 5;
+}
+message RecipientAddressRes {
+    MetaRes meta = 1;
+}
+
+message VerifyReq {
+    WxUser wxUser = 1;
+    string no = 2;
+    string identity = 3;
+    string mobile = 4;
+    string realName = 5;
+}
+message VerifyRes {
+    MetaRes meta = 1;
+    VerifyDetails data = 2;
+}
+message VerifyDetails {
+    string mobile = 1;
+    string identity = 2;
+}
+
+//标签新建
+message TagsCreateReq{
+    string id = 1;
+    string name = 2;
+    string sort = 4;
+    bool isShow = 5;
+    Operator operator = 6;
+    string tagType = 7;
+}
+
+message TagsEditResp{
+    MetaRes meta = 1;
+    TagsDetail data = 2;
+}
+
+message TagsDetail{
+    string id = 1;
+    string name = 2;
+    string sort = 4;
+    bool isShow = 5;
+    string channelID = 6;
+    string createdAt = 7;
+    string tagType = 8;
+}
+
+
+//分类删除
+message TagsDeleteReq{
+    string id = 1;
+    Operator operator = 2;
+}
+
+message TagsDeleteResp{
+    MetaRes meta = 1;
+}
+
+//标签列表
+message TagsListResp{
+    MetaRes meta = 1;
+    TagsListData data = 2;
+}
+
+message TagsListData{
+    repeated TagsDetail list = 1;
+    PageInfo pageInfo = 2;
+}
+
+message TagsListReq{
+    string name = 1;
+    string page = 2;
+    string pageSize = 3;
+    string channelID = 4;
+    bool isMarketer = 5;
+    string tagType = 6;
+}
+
+
+
+message GetReceiveListReq {
+    WxUser wxUser = 1;
+    string page = 2;
+    string pageSize = 3;
+}
+message GetReceiveListRes {
+    MetaRes meta = 1;
+    GetReceiveListResData data = 2;
+}
+message GetReceiveListResData {
+    PageInfo pageInfo = 1;
+    repeated ReceiveToList receiveList = 2;
+}
+message ReceiveToList {
+    ActivityData activity = 1;
+    ReceiveData receive = 2;
+}
+message DeleteActivityReq {
+    Operator operator = 1;
+    string id = 2;
+}
+message DeleteActivityRes {
+    MetaRes meta = 1;
+    DeleteActivityResData data = 2;
+}
+message DeleteActivityResData {
+    ActivityAllData activity = 1;
+}
+
+message GetAllReceiveListReq{
+    Operator operator = 1;
+    repeated string tags = 2;
+    string activityName = 3;
+    string orgId = 4;
+    string mobile = 5;
+    string page = 6;
+    string pageSize = 7;
+    SearchTime time = 8;
+}
+message SearchTime {
+    string startAt = 1;
+    string endAt = 2;
+}
+
+message GetAllReceiveListRes{
+    MetaRes meta = 1;
+    GetActivityReceiveListResData data = 2;
+}
+
+
+message GetActivityReceiveListReq {
+    Operator operator = 1;
+    string actId = 2;
+    string page = 4;
+    string pageSize = 5;
+    string openId = 6;
+    string mobile = 7;
+    string status = 8;
+    string marketerMobile = 9;
+    string marketerName = 10;
+    string orgId = 11;
+    string givingTicketName = 12;
+    string startAt = 13;
+    string endAt = 14;
+}
+message GetActivityReceiveListRes {
+    MetaRes meta = 1;
+    GetActivityReceiveListResData data = 2;
+}
+message GetActivityReceiveListResData {
+    PageInfo pageInfo = 1;
+    repeated ReceiveAllData receiveList = 2;
+    ReceivePanelData panel = 3;
+    ExportInfo export = 4;
+}
+message GetAllotReceiveListReq {
+    Operator operator = 1;
+    string actId = 2;
+    string orgId = 3;
+    string page = 4;
+    string pageSize = 5;
+    string openId = 6;
+    string mobile = 7;
+    string status = 8;
+    string marketerMobile = 9;
+    string marketerName = 10;
+}
+message GetAllotReceiveListRes {
+    MetaRes meta = 1;
+    GetAllotReceiveListResData data = 2;
+}
+message GetAllotReceiveListResData {
+    PageInfo pageInfo = 1;
+    repeated ReceiveAllData receiveList = 2;
+    ReceivePanelData panel = 3;
+}
+message ReceiveAllData {
+    string id = 1;
+    string num = 2; // 领取金额
+    string status = 3;
+    string errMsg = 4;
+    string receivedAt = 5;
+    string nickname = 6;
+    string avatar = 7;
+    string mobile = 8;
+    string createdAt = 9;
+    string openId = 10;
+    string identity = 11; // 身份证
+    string address = 12;
+    string marketerName = 13;
+    string marketerMobile = 14;
+    string marketerOrgId = 15;
+    string marketerOrgFullName = 16;
+    string marketerOrgOrgNo = 17;
+    string name = 18;
+    string marketMoney = 19;
+    string localPoint = 20;
+    string apiPoint = 21;
+    string totalLocalPoint = 22;
+    string totalApiPoint = 23;
+    repeated string tags = 24;
+    string actName = 25;
+    repeated AdminGivingTicketData givingTicketInfo = 26;
+    string recipientName = 27;
+    string recipientMobile = 28;
+    string recipientAddress = 29;
+    string orderType = 30;
+    string orderMoney = 31;
+    string registerStr = 67;
+}
+message AdminGivingTicketData {
+    string givingTicketId = 1;
+    string givingTicketName = 2;
+    string givingTicketMobile = 3;
+    string givingTicketIdentity = 4;
+}
+message GetMarketerActivityListByStatusReq{
+    Marketer marketer = 1;
+    string activityStatus = 2;
+    string page = 3;
+    string pageSize = 4;
+    string tagId = 5;
+}
+
+message GetMarketerActivityListByStatusResp{
+    MetaRes meta = 1;
+    GetMarketerActivityListByStatusRespData data = 2;
+}
+message GetMarketerActivityListByStatusRespData {
+    PageInfo pageInfo = 1;
+    repeated ActivityData activityList = 2;
+}
+
+message GetMarketerReceiveListReq {
+    Marketer marketer = 1;
+    string actId = 2;
+    string page = 3;
+    string pageSize = 4;
+    string type = 5;
+}
+message GetMarketerReceiveListRes {
+    MetaRes meta = 1;
+    GetMarketerReceiveListResData data = 2;
+}
+message GetMarketerReceiveListResData {
+    PageInfo pageInfo = 1;
+    repeated ReceiveData receiveList = 2;
+    ReceivePanelData panel = 3;
+}
+message GetMarketerReceivePanelReq {
+    Marketer marketer = 1;
+    string actId = 2;
+}
+message GetMarketerReceivePanelRes {
+    MetaRes meta = 1;
+    GetMarketerReceivePanelResData data = 2;
+}
+message GetMarketerReceivePanelResData {
+    ReceivePanelData panel = 1;
+}
+message ReceivePanelData {
+    string orderNum = 1;
+    string receiveNum = 2;
+    string dayOrderNum = 3;
+    string dayReceiveNum = 4;
+    string refundOrderNum = 5;
+    string refundReceiveNum = 6;
+    string receiveSuccNum = 7;
+    string receiveFailNum = 8;
+    string receiveTotalNum = 9;
+}
+message GivingTicketData{
+    string givingTicketName = 1;
+    string givingTicketMobile = 2;
+    string givingTicketIdentity = 3;
+}
+message GivingTicketReq{
+    WxUser wxUser = 1;
+    string id = 2;
+    repeated GivingTicketData givingTicketInfo = 3;
+}
+message GivingTicketRes{
+    MetaRes meta = 1;
+    repeated GivingTicketErrData data = 2;
+}
+message GivingTicketErrData {
+    string givingTicketName = 1;
+    string givingTicketIdentity = 2;
+    string errMsg = 3;
+}
+message GetReceiveDetailReq {
+    WxUser wxUser = 1;
+    string id = 2;
+}
+message GetReceiveDetailRes {
+    MetaRes meta = 1;
+    GetReceiveDetailResData data = 2;
+
+}
+message GetReceiveDetailResData {
+    ReceiveData receive = 1;
+    ActivityData activity = 2;
+    IssueData issue = 3;
+    repeated GivingTicketData givingTicketInfo = 4;
+}
+message WxUser {
+    string wxUnionId = 1;
+    string wxMiniAppId = 2;
+    string wxMiniOpenId = 3;
+    string wxMobile = 4;
+    string userId = 5;
+    string wxNickname = 6;
+    string wxAvatar = 7;
+}
+message WxMiniUserReceiveReq {
+    WxUser wxUser = 1;
+    string no = 2;
+    string num = 3;
+    string mobile = 4;
+    string registerStr = 5;
+}
+message WxMiniUserReceiveRes {
+    MetaRes meta = 1;
+    WxMiniUserReceiveResData data = 2;
+}
+message WxMiniUserReceiveResData {
+    ReceiveData receive = 1;
+    PayInfo payInfo = 2;
+}
+message PayInfo{
+    string timestamp = 1;
+    string nonceStr = 2;
+    string package = 3;
+    string signType = 4;
+    string paySign = 5;
+    string orderNo = 6;
+}
+message ReceiveData {
+    string id = 1;
+    string Num = 2; // 领取金额
+    string status = 3;
+    string errMsg = 4;
+    string receivedAt = 5;
+    string nickname = 6;
+    string avatar = 7;
+    string mobile = 8;
+    string createdAt = 9;
+    string name = 10;
+    string receivedType = 11;
+    bool isGivingTicket = 12;
+    string recipientName = 13;
+    string recipientMobile = 14;
+    string address = 15;
+    string marketMoney = 16;
+    string orderMoney = 17;
+    string payServiceNo = 18;
+    string chargeStatus = 19;
+    string webUrl = 20;
+    string verifyStatus = 21;
+    string registerStr = 22;
+}
+message GetActivityFromMiniWithIssueNoReq {
+    string no = 1;
+    WxUser wxUser = 2;
+}
+
+message GetActivityFromMiniWithIssueNoRes {
+    MetaRes meta = 1;
+    GetActivityFromMiniResData data = 2;
+}
+
+message MarketerIssueReq {
+    Marketer marketer = 1;
+    string actId = 2;
+    string num = 3;
+    string maxCodeReceive = 4;
+    string maxCodeUserReceive = 5;
+    string issuesRemark = 6;
+    string mobile = 7;
+    string name = 8;
+    string identity = 9;
+    string results = 11;
+    string businessType = 12;
+    string carNumber = 13;
+    string newBusinessType = 14;
+    string ascensionMoney = 15;
+
+}
+message MarketerIssueRes {
+    MetaRes meta = 1;
+    MarketerIssueResData data = 2;
+}
+
+message MarketerSupplementReceiveReq {
+    Marketer marketer = 1;
+    string actId = 2;
+    string num = 3;
+    string mobile = 4;
+    string name = 5;
+    string identity = 6;
+    string givingTicketName = 7;
+    string givingTicketMobile = 8;
+    string givingTicketIdentity = 9;
+    string issuesRemark = 10;
+    string results = 11;
+    string businessType = 12;
+    string carNumber = 13;
+    string newBusinessType = 14;
+    string ascensionMoney = 15;
+    string mobileCode = 16;
+}
+message MarketerSupplementReceiveRes {
+    MetaRes meta = 1;
+}
+
+message MarketerIssueResData {
+    IssueData issue = 1;
+}
+message IssueData {
+    string no = 1;
+    string actId = 2;
+    string orgId = 3;
+    string issueNum = 4;
+    string expiredAt = 5;
+    string createdAt = 6;
+}
+message GetActivityFromMiniReq {
+    string id = 1;
+}
+message GetActivityFromMiniRes {
+    MetaRes meta = 1;
+    GetActivityFromMiniResData data = 2;
+}
+message GetActivityFromMiniResData {
+    ActivityData activity = 1;
+    string num = 2;
+    bool isAuthorizationMobile = 3;
+}
+message GetMarketerIssuePanelReq {
+    Marketer marketer = 1;
+    string actId = 2;
+}
+message GetMarketerIssuePanelRes {
+    MetaRes meta = 1;
+    GetMarketerIssuePanelResData data = 2;
+}
+message GetMarketerIssuePanelResData {
+    IssuePanelData panel = 1;
+}
+message IssuePanelData {
+    string dayIssueNum = 1; // 今日已发
+    string dayCanIssueNum = 2; // 今日可发
+    string issueNum = 3; // 累计已发
+    string canIssueNum = 4; // 累计可发
+    string canCode = 5; // 剩余可创建
+    string allotNum = 6; // 网点剩余
+}
+message ActivityData {
+    string id = 1;
+    string name = 2;
+    TimeRule timeRule = 3;
+    string isRegister = 4;
+    ImageData productImg = 5;
+//    string numRule = 9;
+//    string numMin = 10;
+//    string numMax = 11;
+//    repeated NumConfig numConfigs = 12;
+    string maxCodeReceive = 6;
+    string maxCodeUserReceive = 7;
+    string orgId = 8;
+    string orgFullName = 9;
+    string status = 10;
+    string desc = 11;
+    string registerConfigId = 12;
+    string salesType = 13;
+    string marketMoney = 14;
+    string localPoint = 15;
+    string apiPoint = 16;
+    string productDesc = 17;
+    string maxCodeProduct = 18;
+    string priceTag = 19;
+    string orderType = 20;
+    string sort = 21;
+    string num = 22;
+    bool isSupplement = 23;
+    bool isIdCardVeri = 24;
+    bool isIssuesRemark = 25;
+    string issuesRemarkKey = 26;
+    bool isIssuesRemarkValSole = 27;
+    bool isMustRegister = 28;
+    string isTakePartVerify = 29;
+    string thirdActId = 30;
+    string thirdGiftId = 31;
+    string maxUserReceiveIssueNum = 32;
+    string exchangeRole = 33;
+    string merchantNo = 34;
+    bool isOpenProductCode = 35;
+    repeated string supplementConfig = 36;
+    string allotNum = 37;
+    string goodsType = 38;
+    string specialTemplate = 39;
+    ImageData templateImage = 40;
+    string templateColor = 41;
+    ImageData templateButtonImage = 42;
+    ImageData marketerTemplateImage = 43;
+    ImageData advertImg = 44;
+    string advertUrl = 45;
+    repeated string marketerRegisterConfig = 46;
+    bool isMobileCode = 47;
+    bool userRegister = 48;
+    string userRegisterStr = 49;
+
+}
+message Marketer {
+    bool isSuper = 1;
+    string userId = 2;
+    string name = 3;
+    string mobile = 4;
+    string orgId = 5;
+    string channelId = 6;
+}
+message GetSettleNumReq {
+    Operator operator = 1;
+    string id = 2;
+}
+message GetSettleNumRes {
+    MetaRes meta = 1;
+    SettleData data = 2;
+}
+message SettleActivityReq {
+    Operator operator = 1;
+    string id = 2;
+}
+message SettleActivityRes {
+    MetaRes meta = 1;
+    SettleData data = 2;
+}
+message SettleData {
+    string settleNum = 1; // 需要结算金额 总剩余金额=总预算-总领取
+    string totalNum = 2; // 总预算
+    string receiveNum = 3; // 总领取
+}
+message SwitchActivityReq {
+    Operator operator = 1;
+    string id = 2;
+    bool isClose = 3;
+}
+message SwitchActivityRes {
+    MetaRes meta = 1;
+}
+message EditActivityReq {
+    string id = 31;
+    Operator operator = 1;
+    bool isCanOrgType = 2;
+    string name = 3;
+    string orgId = 4;
+    string maxCodeProduct = 5;
+    repeated string canOrgTypes = 6;
+    bool isIssue = 7;
+    string isRegister = 8;
+    string totalNum = 10;
+    bool isNotMarketerReceive = 11;
+
+    // 领取配置
+    string maxUserReceive = 12; // 每人最大可领取
+    // 派发配置
+    string maxDayIssueNum = 13; // 每天最大派发
+    string maxUserIssueNum = 14; // 每人最大派发
+    string maxUserDayIssueNum = 15; // 每人每天最大派发
+    string maxUserIssueCode = 16; // 每人最大派发码数
+    // 码配置
+    string maxCodeReceive = 17;
+    string maxCodeUserReceive = 18;
+    string codeExpireMinute = 19;
+
+    TimeRule timeRule = 20;
+    ImageData productImg = 21;
+
+    bool isClose = 23;
+    string desc = 24;
+    string registerConfigId = 25;
+    string productDesc = 26;
+    string salesType = 27;
+    string marketMoney = 28;
+    string localPoint = 29;
+    string apiPoint = 30;
+    repeated string actEvents = 32;
+    repeated string tagInfo = 33;
+    string priceTag = 34;
+    string orderType = 35;
+    string sort = 36;
+    bool isSupplement = 37;
+    bool isIdCardVeri = 38;
+    bool isIssuesRemark = 39;
+    string issuesRemarkKey = 40;
+    bool isIssuesRemarkValSole = 41;
+    bool isMustRegister = 42;
+    string isTakePartVerify = 43;
+    string thirdActId = 44;
+    string thirdGiftId = 45;
+    string maxUserReceiveIssueNum = 46;
+    string exchangeRole = 47;
+    string merchantNo = 48;
+    bool isOpenProductCode = 49;
+    repeated string supplementConfig = 50;
+    string costingMoney = 51;
+    string goodsType = 52;
+    string equityNo = 53;
+    string equityType = 54;
+    string specialTemplate = 55;
+    string templateImageId = 56;
+    string templateColor = 57;
+    string templateButtonImageId = 58;
+    string equityId = 59;
+    ImageData marketerTemplateImage = 60;
+    string advertImgId = 61;
+    string advertUrl = 62;
+    repeated string marketerRegisterConfig = 63;
+    bool isMobileCode = 64;
+    repeated ActEventData actEventData = 65;
+    bool userRegister = 66;
+    string userRegisterStr = 67;
+    string registerType = 68;
+    string eventId = 69;
+    bool isVerifyWhiteList = 70;
+    bool isVerifyWhiteListStaff = 71;
+    repeated string whiteListIds = 72;
+}
+message EditActivityRes {
+    MetaRes meta = 1;
+    EditActivityResData data = 2;
+}
+message EditActivityResData {
+    ActivityAllData activity = 1;
+}
+
+message OrgData {
+    string id = 1;
+    string level = 2;
+    string name = 3;
+    string pid = 4;
+    bool hasChild = 5;
+    repeated OrgData childs = 6;
+}
+
+message GetCanRecycleListReq {
+    Operator operator = 1;
+    string actId = 2;
+    string orgId = 3;
+}
+message GetCanRecycleListRes {
+    MetaRes meta = 1;
+    GetCanRecycleListResData data = 2;
+}
+message GetCanRecycleListResData {
+    repeated AllotTreeData recycleList = 1;
+}
+
+message AllotTreeData {
+    string actId = 2;
+    string orgId = 3;
+    string orgName = 4;
+    string num = 5; // 剩余金额
+    bool hasChild = 6;
+    repeated AllotTreeData childs = 7;
+}
+
+message GetCanAllotListReq {
+    Operator operator = 1;
+    string actId = 2;
+    string orgId = 3;
+}
+message GetCanAllotListRes {
+    MetaRes meta = 1;
+    GetCanAllotListResData data = 2;
+}
+message GetCanAllotListResData {
+    repeated AllotData allotList = 1;
+}
+message AllotData {
+    string actId = 2;
+    string orgId = 3;
+    string orgName = 4;
+    string num = 5; // 剩余金额
+    bool hasChild = 6;
+}
+
+message GetAllotRecordListReq {
+    Operator operator = 1;
+    string actId = 2;
+    string orgId = 3;
+    string page = 4;
+    string pageSize = 5;
+    string source = 7;
+    string operatorName = 8;
+    string operatorMobile = 9;
+}
+message GetAllotRecordListRes {
+    MetaRes meta = 1;
+    GetAllotRecordListResData data = 2;
+}
+message GetAllotRecordListResData {
+    PageInfo pageInfo = 1;
+    repeated AllotRecordData recordList = 2;
+    ImportInfo importInfo = 3;
+}
+message AllotRecordData {
+    string id = 1;
+    string actId = 2;
+    string sourceNum = 3;
+    string num = 4;
+    string targetNum = 5;
+    string operatorMobile = 6;
+    string operatorName = 7;
+    string operatedAt = 8;
+    string remark = 9;
+    string sourceOrgName = 11;
+    string targetOrgName = 12;
+    string source = 13;
+}
+
+message GetAllotListReq {
+    Operator operator = 1;
+    string actId = 2;
+    string orgId = 3;
+}
+message GetAllotListRes {
+    MetaRes meta = 1;
+    GetAllotListResData data = 2;
+}
+message GetAllotListResData {
+    repeated AllotAllData allotList = 1;
+    ExportInfo export = 2;
+}
+
+message RecycleReq {
+    Operator operator = 1;
+    string actId = 2;
+    string sOrgId = 3;
+    string tOrgId = 4;
+    string num = 5;
+}
+message RecycleRes {
+    MetaRes meta = 1;
+    RecycleResData data = 2;
+}
+message RecycleResData {
+
+}
+
+message AllotReq {
+    Operator operator = 1;
+    string actId = 2;
+    string sOrgId = 3;
+    string tOrgId = 4;
+    string num = 5;
+}
+message AllotRes {
+    MetaRes meta = 1;
+    AllotResData data = 2;
+}
+message AllotResData {
+}
+
+message GetActivityListReq {
+    Operator operator = 1;
+    string page = 2;
+    string pageSize = 3;
+    string name = 4;
+    string orgId = 5;
+    string id = 6;
+    repeated string tags = 7;
+}
+message ExportInfo {
+    string type = 1;
+    string searchData = 2;
+    string additionalData = 3;
+}
+message GetActivityListRes {
+    MetaRes meta = 1;
+    GetActivityListResData data = 2;
+}
+message GetActivityListResData {
+    PageInfo pageInfo = 1;
+    repeated ActivityAllData activityList = 2;
+}
+message Operator {
+    bool isSuper = 1;
+    string userId = 2;
+    string mobile = 3;
+    string name = 4;
+    string orgId = 5;
+    string channelId = 6;
+}
+
+message AuditActivityReq {
+    Operator operator = 2;
+    string id = 3;
+    string status = 4;
+    string errMsg = 5;
+}
+message AuditActivityRes {
+    MetaRes meta = 1;
+    AuditActivityResData data = 2;
+}
+message AuditActivityResData {
+    ActivityAllData activity = 1;
+}
+
+message EditActivityNumReq {
+    Operator operator = 1;
+    string id = 2;
+    string num = 3; // 增加为正数 减少为负数
+}
+message EditActivityNumRes {
+    MetaRes meta = 1;
+    EditActivityNumResData data = 2;
+}
+message EditActivityNumResData {
+    string num = 1;
+    string oldNum = 2;
+    string newNum = 3;
+}
+
+message GetActivityDetailReq {
+    Operator operator = 1;
+    string id = 2;
+}
+message GetActivityDetailRes {
+    MetaRes meta = 1;
+    GetActivityDetailResData data = 2;
+}
+message GetActivityDetailResData {
+    ActivityAllData activity = 1;
+}
+
+message CreateActivityReq {
+    // 网关注入
+    Operator operator = 1;
+    bool isCanOrgType = 2;
+    string name = 3;
+    string orgId = 4;
+    string maxCodeProduct = 5;
+    repeated string canOrgTypes = 6;
+    bool isIssue = 7;
+    string isRegister = 8;
+    string totalNum = 10;
+    bool isNotMarketerReceive = 11;
+
+    // 领取配置
+    string maxUserReceive = 12; // 每人最大可领取
+    // 派发配置
+    string maxDayIssueNum = 13; // 每天最大派发
+    string maxUserIssueNum = 14; // 每人最大派发
+    string maxUserDayIssueNum = 15; // 每人每天最大派发
+    string maxUserIssueCode = 16; // 每人最大派发码数
+    // 码配置
+    string maxCodeReceive = 17;
+    string maxCodeUserReceive = 18;
+    string codeExpireMinute = 19;
+
+    TimeRule timeRule = 20;
+    ImageData productImg = 21;
+
+    bool isClose = 23;
+    string desc = 24;
+    string registerConfigId = 25;
+    string productDesc = 26;
+    string salesType = 27;
+    string marketMoney = 28;
+    string localPoint = 29;
+    string apiPoint = 30;
+    repeated string actEvents = 31;
+    repeated string tagInfo = 32;
+    string priceTag = 33;
+    string orderType = 34;
+    string sort = 35;
+    bool isSupplement = 36;
+    bool isIdCardVeri = 37;
+    bool isIssuesRemark = 38;
+    string issuesRemarkKey = 39;
+    bool isIssuesRemarkValSole = 40;
+    bool isMustRegister = 41;
+    string isTakePartVerify = 42;
+    string thirdActId = 43;
+    string thirdGiftId = 44;
+    string maxUserReceiveIssueNum = 45;
+    string exchangeRole = 46;
+    string merchantNo = 47;
+    bool isOpenProductCode = 48;
+    repeated string supplementConfig = 50;
+    string costingMoney = 51;
+    string goodsType = 52;
+    string equityNo = 53;
+    string equityType = 54;
+    string specialTemplate = 55;
+    string templateImageId = 56;
+    string templateColor = 57;
+    string templateButtonImageId = 58;
+    string equityId = 59;
+    ImageData marketerTemplateImage = 60;
+    string advertImgId = 61;
+    string advertUrl = 62;
+    repeated string marketerRegisterConfig = 63;
+    bool isMobileCode = 64;
+    repeated ActEventData actEventData = 65;
+    bool userRegister = 66;
+    string userRegisterStr = 67;
+    string registerType = 68;
+    string eventId = 69;
+    bool isVerifyWhiteList = 70;
+    bool isVerifyWhiteListStaff = 71;
+    repeated string whiteListIds = 72;
+}
+
+message CreateActivityRes {
+    MetaRes meta = 1;
+    CreateActivityResData data = 2;
+}
+message CreateActivityResData {
+    ActivityAllData activity = 1;
+}
+message ActivityAllData {
+    string id = 1;
+    string no = 2;
+    string name = 3;
+    Operator operator = 4;
+    string orgId = 5;
+    string orgFullName = 6;
+    repeated OrgData orgData = 7;
+    bool isCanOrgType = 8;
+    repeated string canOrgTypes = 9;
+    bool isIssue = 10;
+    string isRegister = 11;
+
+//    string numRule = 12;
+//    string numMin = 13;
+//    string numMax = 14;
+//    repeated NumConfig numConfigs = 15;
+
+    // 领取配置
+    string maxUserReceive = 12; // 最大可领取
+    // 派发配置
+    string maxUserIssueNum = 13;
+    string maxDayIssueNum = 14; // 每天最大派发
+    string maxUserDayIssueNum = 15; // 每人每天最大派发
+    string maxUserIssueCode = 16; // 每人最大生成码数
+    // 码配置
+    string maxCodeReceive = 17;
+    string maxCodeUserReceive = 18;
+    string codeExpireMinute = 19;
+
+    TimeRule timeRule = 20;
+    ImageData productImg = 21;
+
+    Operator audit = 23;
+    string auditStatus = 24;
+    string auditErrMsg = 25;
+    string auditedAt = 26;
+
+    string closedAt = 27;
+    bool isClose = 28;
+
+    Operator settle = 29;
+    string settleStatus = 30;
+    string settleErrMsg = 31;
+    string settledAt = 32;
+
+    string createdAt = 33;
+    string updatedAt = 34;
+
+    string totalNum = 35;
+    string receiveNum = 36;
+    string status = 37;
+    string desc = 38;
+    string registerConfigId = 39;
+    bool isNotMarketerReceive = 40;
+    string productDesc = 41;
+    string salesType = 42;
+    string marketMoney = 43;
+    string localPoint = 44;
+    string apiPoint = 45;
+    repeated string actEvents = 46;
+    string maxCodeProduct = 47;
+    repeated string tagInfo = 48;
+    string priceTag = 49;
+    string orderType = 50;
+    string sort = 51;
+    bool isSupplement = 52;
+    bool isIdCardVeri = 53;
+    bool isIssuesRemark = 54;
+    string issuesRemarkKey = 55;
+    bool isIssuesRemarkValSole = 56;
+    bool isMustRegister = 57;
+    string isTakePartVerify = 58;
+    string thirdActId = 59;
+    string thirdGiftId = 60;
+    string maxUserReceiveIssueNum = 61;
+    string exchangeRole = 62;
+    string merchantNo = 63;
+    bool isOpenProductCode = 64;
+    repeated string supplementConfig = 65;
+    string costingMoney = 66;
+    string goodsType = 67;
+    string equityNo = 68;
+    string equityType = 69;
+    string specialTemplate = 70;
+    ImageData templateImage = 71;
+    string templateColor = 72;
+    ImageData templateButtonImage = 73;
+    string equityId = 74;
+    ImageData marketerTemplateImage = 75;
+    ImageData advertImg = 76;
+    string advertUrl = 77;
+    repeated string marketerRegisterConfig = 78;
+    bool isMobileCode = 79;
+    repeated ActEventData actEventData = 80;
+    bool userRegister = 81;
+    string userRegisterStr = 82;
+    string registerType = 83;
+    string eventId = 84;
+    bool isVerifyWhiteList = 85;
+    bool isVerifyWhiteListStaff = 86;
+    repeated WhiteListData whiteListList = 87;
+}
+message WhiteListData{
+    string id = 1;
+    string name = 2;
+}
+
+message AllotAllData {
+    string actId = 1;
+    string orgId = 2;
+    string orgName = 3;
+    string num = 4; // 剩余金额
+    string receiveNum = 5; // 已领取金额
+    string recycleNum = 6; // 已回收金额
+    string beRecycleNum = 7; // 被回收金额
+    string allotNum = 8; // 已分配金额
+    string beAllotNum = 9; // 被分配金额
+    string createdAt = 10;
+    string updatedAt = 11;
+    bool hasChild = 12;
+}
+
+message ImageData {
+    string id = 1;
+    string name = 2;
+    string url = 3;
+}
+
+message TimeRule {
+    string rule = 1; // 规则类型
+    string startedAt = 2;
+    string endedAt = 3;
+    string ruleDay = 4; // 日期规则
+    string ruleWeek = 5; // 星期规则
+    string ruleTime = 6; // 时间规则
+}
+
+message NumConfig {
+    string num = 1;
+    string probability = 2; // 概率预留
+}
+
+message PageInfo {
+    string page = 1;
+    string pageSize = 2;
+    string totalPage = 3;
+    string total = 4;
+}
+
+message PingReq {
+}
+
+message PingRes {
+    MetaRes meta = 1;
+}
+
+message MetaRes {
+    string requestId = 1;
+    int32 code = 2;
+    string msg = 3;
+}
+message ImportInfo{
+    string type = 1;
+    string additionalData = 2;
+}
+

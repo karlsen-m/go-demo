@@ -8,6 +8,7 @@ import (
 	"gotoprotobuf/models"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -19,6 +20,7 @@ type Message struct {
 type FieldData struct {
 	Field     string
 	FieldType string
+	Comment   string
 }
 
 func main() {
@@ -73,9 +75,16 @@ func fileToProtoWithCmd() {
 			} else {
 				dataType = "string"
 			}
+			gormTagValue := reflect.StructTag(tag.Value[1 : len(tag.Value)-1]).Get("gorm")
+			isComment := strings.Contains(gormTagValue, "comment:")
+			comment := ""
+			if isComment {
+				comment = strings.Split(gormTagValue, "comment:")[1]
+			}
 			data.FieldData = append(data.FieldData, FieldData{
 				Field:     tagValue,
 				FieldType: dataType,
+				Comment:   comment,
 			})
 		}
 
@@ -87,7 +96,12 @@ func fileToProtoWithCmd() {
 			fmt.Println(fmt.Sprintf("message %s {", data.MessageName))
 			if len(data.FieldData) > 0 {
 				for i, v := range data.FieldData {
-					fmt.Println(fmt.Sprintf("%s %s = %d;", v.FieldType, v.Field, i+1))
+					if v.Comment != "" {
+						fmt.Println(fmt.Sprintf("%s %s = %d;//%s", v.FieldType, v.Field, i+1, v.Comment))
+					} else {
+						fmt.Println(fmt.Sprintf("%s %s = %d;", v.FieldType, v.Field, i+1))
+					}
+
 				}
 			}
 			fmt.Println("}")
@@ -121,32 +135,49 @@ func structToProto() {
 		field := v.Field(i)
 		if field.Kind() == reflect.Struct && t.Field(i).Type != reflect.TypeOf(time.Time{}) {
 			for j := 0; j < field.NumField(); j++ {
+				gormTag := field.Type().Field(j).Tag.Get("gorm")
+				isComment := strings.Contains(gormTag, "comment:")
+				comment := ""
+				if isComment {
+					comment = strings.Split(gormTag, "comment:")[1]
+				}
 				if field.Type().Field(j).Type.Kind() == reflect.Bool {
 					message := FieldData{
 						Field:     field.Type().Field(j).Tag.Get("json"),
 						FieldType: "bool",
+						Comment:   comment,
 					}
 					data = append(data, message)
 				} else {
 					message := FieldData{
 						Field:     field.Type().Field(j).Tag.Get("json"),
 						FieldType: "string",
+						Comment:   comment,
 					}
 					data = append(data, message)
 				}
 			}
 		} else {
 			tag := t.Field(i).Tag.Get("json")
+			gormTag := t.Field(i).Tag.Get("gorm")
+			isComment := strings.Contains(gormTag, "comment:")
+			comment := ""
+			if isComment {
+				comment = strings.Split(gormTag, "comment:")[1]
+			}
+
 			if t.Field(i).Type.Kind() == reflect.Bool {
 				message := FieldData{
 					Field:     tag,
 					FieldType: "bool",
+					Comment:   comment,
 				}
 				data = append(data, message)
 			} else {
 				message := FieldData{
 					Field:     tag,
 					FieldType: "string",
+					Comment:   comment,
 				}
 				data = append(data, message)
 			}
@@ -157,7 +188,11 @@ func structToProto() {
 	if len(data) > 0 {
 		fmt.Println("message User {")
 		for i, d := range data {
-			fmt.Println(fmt.Sprintf("%s %s = %d;", d.FieldType, d.Field, i+1))
+			if d.Comment != "" {
+				fmt.Println(fmt.Sprintf("%s %s = %d;//%s", d.FieldType, d.Field, i+1, d.Comment))
+			} else {
+				fmt.Println(fmt.Sprintf("%s %s = %d;", d.FieldType, d.Field, i+1))
+			}
 		}
 		fmt.Println(fmt.Sprintln("}"))
 	}
