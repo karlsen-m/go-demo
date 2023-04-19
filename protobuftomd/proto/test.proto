@@ -7,9 +7,11 @@ service Giftbagcasual {
   rpc Ping(PingReq) returns(PingRes){};
   rpc GetGiftbag(GetGiftbagReq) returns(GetGiftbagRes){};
 }
-//message PingReq{
-//  string name = 1;
-//}
+
+
+
+
+
 message PingReq {
   string name = 1;
   message Sub {

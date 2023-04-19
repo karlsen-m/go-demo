@@ -1,108 +1,92 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"regexp"
 	"strings"
 )
 
-func main() {
-	str := `message PingReq {
-	  string name = 1;
-	  message Sub {
-	    string age = 1;
-	    string id = 2;
-		message Test {
-			string ageName = 1;
-		}
-		message Test1 {
-			string ageName = 1;
-		}
-		Test test = 3;
-		Test1 test1 = 4;
-	  }
-	  Sub sub = 2;
-	}`
-	messages := extractMessages(str)
-	fmt.Println(messages)
-}
+//func main() {
+//	str := `message PingReq {
+//  string name = 1;//required
+//  message Sub {
+//    string age = 1;//age
+//    string id = 2;
+//    message Test {
+//      string ageName = 1; //ageName
+//    }
+//    Test test = 3;  //test
+//    message Test1 {
+//      string ageName = 1;
+//    }
+//    Test1 test1 = 4;
+//  }
+//  Sub sub = 2;
+//  repeated int32 ids = 3;//required
+//}`
+//	messages := extractMessages(str)
+//	fmt.Println(messages)
+//}
+//
+//func extractMessages(str string) []string {
+//	var messages []string
+//	isComment := strings.Contains(str, "\n")
+//	comment := make([]string, 0)
+//	if isComment {
+//		comment = strings.Split(str, "\n")
+//	}
+//	data := extractMessagesData(comment)
+//
+//	for _, d := range data {
+//		fmt.Println(d)
+//	}
+//	return messages
+//}
 
-func extractMessages(str string) []string {
-	var messages []string
-	isComment := strings.Contains(str, "\n")
-	comment := make([]string, 0)
-	if isComment {
-		comment = strings.Split(str, "\n")
-	}
+func extractMessagesData(comment []string) [][]string {
 	data := [][]string{}
-	if len(comment) > 0 {
-		for i, c := range comment {
-			if i > 0 {
-				if strings.Contains(c, "message") {
-					//有嵌套，往下找最近的}花括号
-					c1EndNum := 0
-					for j, c1 := range comment[i:] {
-						if j > 0 {
-							if strings.Contains(c1, "message") {
-								//有嵌套，往下找最近的}花括号
-								for k, c2 := range comment[i+j:] {
-									//if strings.Contains(c2, "message") {
-									//	//有嵌套，往下找最近的}花括号
-									//	for l, c3 := range comment[i+j+k:] {
-									//		if strings.Contains(c3, "}") {
-									//			//找到了最近的}花括号
-									//			data = append(data, comment[i:i+j+k+l])
-									//			break
-									//		}
-									//	}
-									//}
-									if strings.Contains(c2, "}") {
-										//找到了最近的}花括号
-										commentTest := make([]string, len(comment))
-										copy(commentTest, comment)
-										test := commentTest[i+j : i+j+k+1]
-										comment = append(comment[:i+j], comment[i+j+k+1:]...)
-										c1EndNum = i + j + k + 1
-										data = append(data, test)
-										break
-									}
-								}
-							}
-						}
-						if strings.Contains(c1, "}") {
-							if c1EndNum == 0 {
-								//没嵌套
-								commentTest := make([]string, len(comment))
-								copy(commentTest, comment)
-								sub := commentTest[i : i+j+1]
-								comment = append(comment[:i], comment[i+j+1:]...)
-								data = append(data, sub)
-								break
-							} else {
-								//有嵌套
-								if i+j+1 != c1EndNum {
-									commentTest := make([]string, len(comment))
-									copy(commentTest, comment)
-									sub := commentTest[i : i+j+1]
-									comment = append(comment[:i], comment[i+j+1:]...)
-									data = append(data, sub)
-									break
-								}
-							}
+	notMassage := make([]string, 0)
+START:
+	commentTest := make([]string, len(comment))
+	delNum := 0
+	copy(commentTest, comment)
+	for i, c := range commentTest {
+		isCtn := false
+		if i > 0 && strings.Contains(c, "message") {
+			//有嵌套，往下找最近的}花括号
+			res := [][]string{}
+		CTN:
+			if isCtn {
+				res = extractMessagesData(comment[0:])
+			} else {
+				res = extractMessagesData(comment[i-delNum:])
+			}
 
-						}
-					}
-				}
-
+			data = append(data, res...)
+			if strings.Contains(comment[0], "message") {
+				isCtn = true
+				goto CTN
+			}
+			goto START
+		} else {
+			notMassage = append(notMassage, c)
+			if delNum == 0 {
+				comment = append(comment[:i], comment[i+1:]...)
+				delNum++
+			} else {
+				comment = append(comment[:i-delNum], comment[i+1-delNum:]...)
+				delNum++
+			}
+			if strings.Contains(c, "}") {
+				break
 			}
 		}
-		data = append(data, comment)
 	}
-
-	for _, d := range data {
-		fmt.Println(d)
-	}
-	return messages
+	data = append(data, notMassage)
+	return data
 }
 
 //
@@ -166,63 +150,64 @@ func extractMessages(str string) []string {
 //	}
 //}
 
-//func main() {
-//	// 读取 proto 文件内容
-//	protoContent, err := ioutil.ReadFile("./proto/test.proto")
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	//messageData := make(map[string][]Field)
-//	// 定义正则表达式匹配 message 的模式（包括注释行）
-//	messageRegex := regexp.MustCompile(`(?s)//.*?\n|message\s+\w+\s*{[^{}]*((\{[^{}]*\})|[^{}])*}`)
-//
-//	// 查找所有匹配的 message
-//	matches := messageRegex.FindAll(protoContent, -1)
-//
-//	// 过滤掉包含注释的消息
-//	filteredMatches := make([][]byte, 0)
-//	for _, match := range matches {
-//		if !bytes.HasPrefix(match, []byte("//")) {
-//			filteredMatches = append(filteredMatches, match)
-//		}
-//	}
-//
-//	// 输出每个匹配到的 message
-//	for _, match := range filteredMatches {
-//		messages := extractMessages(string(match))
-//		total := len(messages)
-//		fmt.Println(total)
-//		fmt.Println(messages)
-//
-//		//messageNema := ""
-//		//isComment := strings.Contains(string(match), "\n")
-//		//comment := []string{}
-//		//if isComment {
-//		//	comment = strings.Split(string(match), "\n")
-//		//}
-//		////fieldData := make([]Field, 0)
-//		//if len(comment) > 0 {
-//		//	//isNesting := false
-//		//	commentLen := len(comment)
-//		//	for i, v := range comment {
-//		//		if i == 0 {
-//		//			messageNema = getMessageName(v)
-//		//			continue
-//		//		}
-//		//		if i == commentLen-1 {
-//		//			continue
-//		//		}
-//		//		//判断是否有嵌套
-//		//		if strings.Contains(v, "message") {
-//		//		}
-//		//		//判断是否是数组
-//		//		if strings.Contains(v, "repeated") {
-//		//		}
-//		//	}
-//		//}
-//		//fmt.Println(messageNema)
-//	}
-//}
+func main() {
+	// 读取 proto 文件内容
+	protoContent, err := ioutil.ReadFile("./proto/test.proto")
+	if err != nil {
+		log.Fatal(err)
+	}
+	//messageData := make(map[string][]Field)
+	// 定义正则表达式匹配 message 的模式（包括注释行）
+	messageRegex := regexp.MustCompile(`(?s)//.*?\n|message\s+\w+\s*{[^{}]*((\{[^{}]*\})|[^{}])*}`)
+
+	// 查找所有匹配的 message
+	matches := messageRegex.FindAll(protoContent, -1)
+
+	// 过滤掉包含注释的消息
+	filteredMatches := make([][]byte, 0)
+	for _, match := range matches {
+		if !bytes.HasPrefix(match, []byte("//")) {
+			filteredMatches = append(filteredMatches, match)
+		}
+	}
+
+	// 输出每个匹配到的 message
+	for _, match := range filteredMatches {
+
+		isComment := strings.Contains(string(match), "\n")
+		comment := []string{}
+		if isComment {
+			comment = strings.Split(string(match), "\n")
+		}
+		//data := extractMessagesData(comment)
+		//for _, d := range data {
+		//	fmt.Println(d)
+		//}
+		//fieldData := make([]Field, 0)
+		messageNema := ""
+
+		if len(comment) > 0 {
+			//isNesting := false
+			commentLen := len(comment)
+			for i, v := range comment {
+				if i == 0 {
+					messageNema = getMessageName(v)
+					continue
+				}
+				if i == commentLen-1 {
+					continue
+				}
+				//判断是否有嵌套
+				if strings.Contains(v, "message") {
+				}
+				//判断是否是数组
+				if strings.Contains(v, "repeated") {
+				}
+			}
+		}
+		fmt.Println(messageNema)
+	}
+}
 
 type Field struct {
 	FieldName     string
