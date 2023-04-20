@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,44 +8,7 @@ import (
 	"strings"
 )
 
-//func main() {
-//	str := `message PingReq {
-//  string name = 1;//required
-//  message Sub {
-//    string age = 1;//age
-//    string id = 2;
-//    message Test {
-//      string ageName = 1; //ageName
-//    }
-//    Test test = 3;  //test
-//    message Test1 {
-//      string ageName = 1;
-//    }
-//    Test1 test1 = 4;
-//  }
-//  Sub sub = 2;
-//  repeated int32 ids = 3;//required
-//}`
-//	messages := extractMessages(str)
-//	fmt.Println(messages)
-//}
-//
-//func extractMessages(str string) []string {
-//	var messages []string
-//	isComment := strings.Contains(str, "\n")
-//	comment := make([]string, 0)
-//	if isComment {
-//		comment = strings.Split(str, "\n")
-//	}
-//	data := extractMessagesData(comment)
-//
-//	for _, d := range data {
-//		fmt.Println(d)
-//	}
-//	return messages
-//}
-
-func extractMessagesData(comment []string) [][]string {
+func extractMessagesData(messageName string, comment []string) [][]string {
 	data := [][]string{}
 	notMassage := make([]string, 0)
 START:
@@ -60,9 +22,9 @@ START:
 			res := [][]string{}
 		CTN:
 			if isCtn {
-				res = extractMessagesData(comment[0:])
+				res = extractMessagesData(messageName, comment[0:])
 			} else {
-				res = extractMessagesData(comment[i-delNum:])
+				res = extractMessagesData(messageName, comment[i-delNum:])
 			}
 
 			data = append(data, res...)
@@ -72,6 +34,17 @@ START:
 			}
 			goto START
 		} else {
+			if strings.Contains(c, "message") {
+				name := getMessageName(c)
+				if messageName == "" {
+					messageName = name
+					notMassage = append(notMassage, name)
+				} else {
+					messageName = messageName + "_" + name
+					notMassage = append(notMassage, messageName)
+				}
+				notMassage = append(notMassage, name)
+			}
 			notMassage = append(notMassage, c)
 			if delNum == 0 {
 				comment = append(comment[:i], comment[i+1:]...)
@@ -89,123 +62,64 @@ START:
 	return data
 }
 
-//
-//func main() {
-//	// 读取proto文件内容到一个字符串变量中
-//	content, err := ioutil.ReadFile("./proto/test.proto")
-//	if err != nil {
-//		fmt.Println("Failed to read file:", err)
-//		return
-//	}
-//
-//	// 使用正则表达式匹配所有message文本块，保存到一个切片中
-//	re := regexp.MustCompile("(?s)message .*?\\}\n")
-//	matches := re.FindAllString(string(content), -1)
-//
-//	// 遍历切片，将每个message文本块拼接成一个完整的字符串
-//	//var result string
-//	for _, match := range matches {
-//		fmt.Println(match)
-//		//result += match
-//	}
-//}
-
-//func main() {
-//	// 读取 proto 文件内容
-//	protoContent, err := ioutil.ReadFile("./proto/test.proto")
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//
-//	// 定义正则表达式匹配 message 的模式
-//	//messageRegex := regexp.MustCompile(`(?s)message\s+\w+\s*{[^{}]*((\{[^{}]*\})|[^{}])*}`)
-//	messageRegex := regexp.MustCompile(`(?m)^\s*//.*$[\r\n]*|(?s)message\s+\w+\s*{[^{}]*((\{[^{}]*\})|[^{}])*}`)
-//
-//	// 查找所有匹配的 message
-//	matches := messageRegex.FindAll(protoContent, -1)
-//
-//	// 输出每个匹配到的 message
-//	for _, match := range matches {
-//		fmt.Println(string(match))
-//	}
-//}
-
-//func main() {
-//	// 读取 proto 文件内容
-//	protoContent, err := ioutil.ReadFile("./proto/test.proto")
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//
-//	// 定义正则表达式匹配 message 的模式
-//	messageRegex := regexp.MustCompile(`(?s)(?://.*)?\nmessage\s+\w+\s*{[^{}]*((\{[^{}]*\})|[^{}])*}`)
-//
-//	// 查找所有匹配的 message
-//	matches := messageRegex.FindAll(protoContent, -1)
-//
-//	// 输出每个匹配到的 message
-//	for i, match := range matches {
-//		message := string(match)
-//		fmt.Println(i, message)
-//	}
-//}
-
 func main() {
 	// 读取 proto 文件内容
 	protoContent, err := ioutil.ReadFile("./proto/test.proto")
 	if err != nil {
 		log.Fatal(err)
 	}
-	//messageData := make(map[string][]Field)
-	// 定义正则表达式匹配 message 的模式（包括注释行）
-	messageRegex := regexp.MustCompile(`(?s)//.*?\n|message\s+\w+\s*{[^{}]*((\{[^{}]*\})|[^{}])*}`)
+	protoComment := string(protoContent)
 
-	// 查找所有匹配的 message
-	matches := messageRegex.FindAll(protoContent, -1)
+	// 匹配并替换单行注释
+	//pattern1 := regexp.MustCompile(`//.*`)
+	pattern1 := regexp.MustCompile(`\n\s*\/\/.*?\n`)
+	protoComment = pattern1.ReplaceAllString(protoComment, "\n")
 
-	// 过滤掉包含注释的消息
-	filteredMatches := make([][]byte, 0)
-	for _, match := range matches {
-		if !bytes.HasPrefix(match, []byte("//")) {
-			filteredMatches = append(filteredMatches, match)
+	// 匹配并替换段落注释
+	pattern2 := regexp.MustCompile(`/\*[\s\S]*?\*/`)
+	protoComment = pattern2.ReplaceAllString(protoComment, "")
+
+	// 匹配空行
+	pattern3 := regexp.MustCompile(`\n{2,}`)
+	protoComment = pattern3.ReplaceAllString(protoComment, "\n")
+
+	comment := []string{}
+	comment = strings.Split(protoComment, "\n")
+	messageStartNum := 0
+	for i, v := range comment {
+		if strings.Contains(v, "message") {
+			messageStartNum = i
+			break
 		}
 	}
-
-	// 输出每个匹配到的 message
-	for _, match := range filteredMatches {
-
-		isComment := strings.Contains(string(match), "\n")
-		comment := []string{}
-		if isComment {
-			comment = strings.Split(string(match), "\n")
-		}
-		//data := extractMessagesData(comment)
-		//for _, d := range data {
-		//	fmt.Println(d)
-		//}
-		//fieldData := make([]Field, 0)
-		messageNema := ""
-
-		if len(comment) > 0 {
-			//isNesting := false
-			commentLen := len(comment)
-			for i, v := range comment {
-				if i == 0 {
-					messageNema = getMessageName(v)
-					continue
-				}
-				if i == commentLen-1 {
-					continue
-				}
-				//判断是否有嵌套
-				if strings.Contains(v, "message") {
-				}
-				//判断是否是数组
-				if strings.Contains(v, "repeated") {
+	messageComment := make([]string, len(comment[messageStartNum:]))
+	_ = copy(messageComment, comment[messageStartNum:])
+	messageData := [][]string{}
+START:
+	if len(messageComment) > 0 {
+		messageNum := 0
+		for i, v := range messageComment {
+			if strings.Contains(v, "message") {
+				messageNum++
+			}
+			if strings.Contains(v, "}") {
+				messageNum--
+				if messageNum == 0 {
+					//一个大的message结束
+					extractData := make([]string, len(messageComment[:i+1]))
+					_ = copy(extractData, messageComment[:i+1])
+					data := extractMessagesData("", extractData)
+					messageData = append(messageData, data...)
+					messageComment = messageComment[i+1:]
+					goto START
 				}
 			}
 		}
-		fmt.Println(messageNema)
+	}
+
+	for _, v := range messageData {
+		fmt.Println(v)
+
 	}
 }
 
@@ -234,11 +148,12 @@ var dataType = []string{
 }
 
 func getMessageName(text string) (messageName string) {
-	messageRegex := regexp.MustCompile(`(?s)message\s+(\w+)\s*{[^{}]*((\{[^{}]*\})|[^{}])*}`)
-	match := messageRegex.FindStringSubmatch(text)
-	if len(match) > 0 {
-		messageName = match[1]
-		return // Output: MetaRes
+	pattern := `message\s+(\w+)\s+\{`
+	re := regexp.MustCompile(pattern)
+	result := re.FindStringSubmatch(text)
+
+	if len(result) > 1 {
+		messageName = result[1]
 	}
 	return
 }

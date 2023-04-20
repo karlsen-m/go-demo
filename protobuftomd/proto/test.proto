@@ -9,19 +9,33 @@ service Giftbagcasual {
 }
 
 
+/*
+  * @brief ping
+  *
+*/
 
-
-
-message PingReq {
+// PingReq is the request of Ping
+message PingReq {//age
   string name = 1;
   message Sub {
     string age = 1;//age
     message Test {
       string nameTest = 1;
+      message User {
+        string nameUser = 1;
+      }
+      User user = 2;
     }
+    message Tests {
+      string nameTest = 1;
+    }
+    Test test = 2;
+    Tests tests = 3;
   }
   Sub sub = 2;//sub
 }
+
+
 message PingRes {
   string name = 1;
   message Sub {
@@ -29,6 +43,9 @@ message PingRes {
   }
   Sub sub = 2;
 }
+
+
+
 message Operator {
   bool isSuper = 1;
   string userId = 2;
@@ -37,6 +54,9 @@ message Operator {
   string orgId = 5;
   string channelId = 6;
 }
+
+
+
 message GetGiftbagReq {
   string name = 1;//name
   Operator operator = 2;//operator
