@@ -35,6 +35,9 @@ message PingReq {//age
   Sub sub = 2;//sub
 }
 
+message User {
+  string nameUser = 1;
+}
 
 message PingRes {
   string name = 1;
