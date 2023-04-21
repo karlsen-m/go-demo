@@ -15,16 +15,16 @@ service Giftbagcasual {
 */
 
 // PingReq is the request of Ping
-message PingReq {//age
-  string name = 1;
+message PingReq {
+  string name = 1;//comment:"用户名"
   message Sub {
-    string age = 1;//age
+    string age = 1;//validate:"required=true,pattern=^[^[0-9]A-Za-z]+([^[0-9]A-Za-z]+)*$,email,min_len=5,max_len=5,gt=1",comment:"年龄"
     message Test {
-      string nameTest = 1;
+      string nameTest = 1;//validate:"required=false",comment:"测试名"
       message User {
-        string nameUser = 1;
+        string nameUser = 1;//validate:"required=true,pattern=^[^[0-9]A-Za-z]+([^[0-9]A-Za-z]+)*$,email,min_len=5,max_len=5,gt=1",comment:"用户名"
       }
-      User user = 2;
+      User user = 2;//validate:"required=true",comment:"用户"
     }
     message Tests {
       string nameTest = 1;
@@ -32,7 +32,7 @@ message PingReq {//age
     Test test = 2;
     Tests tests = 3;
   }
-  Sub sub = 2;//sub
+  Sub sub = 2;
 }
 
 message User {
@@ -54,15 +54,15 @@ message Operator {
   string userId = 2;
   string mobile = 3;
   string name = 4;
-  string orgId = 5;
+  repeated string orgId = 5;
   string channelId = 6;
 }
 
 
 
 message GetGiftbagReq {
-  string name = 1;//name
-  Operator operator = 2;//operator
+  string name = 1;
+  Operator operator = 2;
 }
 message GetGiftbagRes {
   MetaRes meta = 1;
