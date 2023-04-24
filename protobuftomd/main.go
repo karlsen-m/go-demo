@@ -101,7 +101,11 @@ func main() {
 			}
 		}
 	}
+	if len(serviceProtoData) > 0 {
+		for _, v := range serviceProtoData {
 
+		}
+	}
 	fmt.Println(messageToDataMap)
 
 	//
@@ -504,6 +508,26 @@ func analyzeFieldToMarkdown(messageDataMap map[string][]string, messageName stri
 		}
 	}
 	return
+}
+
+func serviceStrSplit(text string) (fields map[string]string) {
+	data := strings.Split(text, "rpc")
+	re := regexp.MustCompile(`^\s*(.*)$`)
+	result := re.FindStringSubmatch(data[1])[1]
+	re2 := regexp.MustCompile(`\s+`)
+	replaced := re2.ReplaceAllString(result, "|")
+	data1 := strings.Split(replaced, "(")
+	fields["serviceName"] = data1[0]
+	data2 := strings.Split(data1[1], ")")
+	fields["reqName"] = data2[0]
+	data3 := strings.Split(data2[1], "(")
+	data4 := strings.Split(data3[1], ")")
+	fields["resName"] = data4[0]
+	if strings.Contains(data4[1], "//") {
+		data5 := strings.Split(data4[1], "//")
+		fields["commen"] = data5[1]
+	}
+	return fields
 }
 
 func fieldSplit(text string) (fields []string) {
