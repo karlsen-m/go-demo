@@ -102,6 +102,8 @@ func main() {
 		}
 	}
 
+	fmt.Println(messageToDataMap)
+
 	//
 	//	messageData := [][]string{}
 	//START:
