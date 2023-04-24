@@ -4,6 +4,7 @@ package template;
 
 option go_package="./test";
 service Giftbagcasual {
+  //rpc Ping(PingReq) returns(PingRes){};
   rpc Ping(PingReq) returns(PingRes){};
   rpc GetGiftbag(GetGiftbagReq) returns(GetGiftbagRes){};
 }

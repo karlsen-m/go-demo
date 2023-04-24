@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/cast"
 	"io/ioutil"
 	"log"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -28,18 +27,20 @@ var (
 		"string",
 	}
 	munberType = []string{
+		"int32",
+		"int64",
+		"uint32",
+		"uint64",
+		"int32",
+		"int64",
+		"uint32",
+		"uint64",
+		"int32",
+		"int64",
+	}
+	floatType = []string{
 		"float64",
 		"float32",
-		"int32",
-		"int64",
-		"uint32",
-		"uint64",
-		"int32",
-		"int64",
-		"uint32",
-		"uint64",
-		"int32",
-		"int64",
 	}
 )
 
@@ -76,6 +77,77 @@ func main() {
 	}
 	messageComment := make([]string, len(comment[messageStartNum:]))
 	_ = copy(messageComment, comment[messageStartNum:])
+	messageToDataMap := getMapMessageToDataWithCommen(messageComment)
+	isServiceStart := false
+	serviceNum := 0
+	serviceProtoData := []string{}
+	for _, v := range comment {
+		if strings.Contains(v, "service") {
+			isServiceStart = true
+			serviceNum++
+		}
+		if isServiceStart {
+			if strings.Contains(v, "rpc") {
+				serviceProtoData = append(serviceProtoData, v)
+			}
+			if strings.Contains(v, "{") {
+				serviceNum++
+			}
+			if strings.Contains(v, "}") {
+				serviceNum--
+				if serviceNum == 0 {
+					break
+				}
+			}
+		}
+	}
+
+	//
+	//	messageData := [][]string{}
+	//START:
+	//	if len(messageComment) > 0 {
+	//		messageNum := 0
+	//		for i, v := range messageComment {
+	//			if strings.Contains(v, "message") {
+	//				messageNum++
+	//			}
+	//			if strings.Contains(v, "}") {
+	//				messageNum--
+	//				if messageNum == 0 {
+	//					//一个大的message结束
+	//					extractData := make([]string, len(messageComment[:i+1]))
+	//					_ = copy(extractData, messageComment[:i+1])
+	//					data := extractMessagesData("", extractData)
+	//					messageData = append(messageData, data...)
+	//					messageComment = messageComment[i+1:]
+	//					goto START
+	//				}
+	//			}
+	//		}
+	//	}
+	//	messageDataMap := make(map[string][]string)
+	//	for _, v := range messageData {
+	//		messageDataMap[v[0]] = v
+	//	}
+	//
+	//	messageToDataMap := make(map[string]MessageToData)
+	//	for _, v := range messageData {
+	//		messageToData := MessageToData{
+	//			MarkedownData: getMessageMarkdown(v, messageDataMap, v[0]),
+	//			JsonData:      getMessageJson(v, messageDataMap, v[0]),
+	//		}
+	//		messageToDataMap[v[0]] = messageToData
+	//	}
+	//	fmt.Println(messageToDataMap)
+	//err = ioutil.WriteFile("./test.md", []byte(md), os.ModePerm)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println("success")
+}
+
+func getMapMessageToDataWithCommen(messageComment []string) (messageToDataMap map[string]MessageToData) {
+
 	messageData := [][]string{}
 START:
 	if len(messageComment) > 0 {
@@ -102,40 +174,269 @@ START:
 	for _, v := range messageData {
 		messageDataMap[v[0]] = v
 	}
-	md := ""
+
+	messageToDataMap = make(map[string]MessageToData)
 	for _, v := range messageData {
-		md = fmt.Sprintf(`%s
+		messageToData := MessageToData{
+			MarkedownData: getMessageMarkdown(v, messageDataMap, v[0]),
+			JsonData:      getMessageJson(v, messageDataMap, v[0]),
+		}
+		messageToDataMap[v[0]] = messageToData
+	}
+	return messageToDataMap
+}
 
+type MessageToData struct {
+	MarkedownData string
+	JsonData      string
+}
 
-<a name="%s"></a>
+func getMessageJson(text []string, messageDataMap map[string][]string, messageName string) string {
+	json := ""
+	if len(text) > 4 {
+		fields := make([]string, len(text[3:])-1)
+		_ = copy(fields, text[3:])
+		for _, field := range fields {
+			commet := strings.Split(field, ";")
+			fieldCommen := fieldSplit(commet[0])
+			if len(fieldCommen) >= 4 {
+				if fieldCommen[0] == "repeated" {
+					//数组
+					if !InArrayWithString(cast.ToString(fieldCommen[1]), dataType) {
+						textC, isOk := messageDataMap[messageName+"_"+fieldCommen[1]]
+						if isOk {
+							childJson := getMessageJson(textC, messageDataMap, messageName+"_"+fieldCommen[1])
+							if childJson == "" {
+								if json == "" {
+									json = fmt.Sprintf(`{
+"%s":[]`, fieldCommen[2])
+								} else {
+									json = fmt.Sprintf(`%s,
+"%s":[]`, json, fieldCommen[2])
+								}
+							} else {
+								if json == "" {
+									json = fmt.Sprintf(`{
+"%s":[
+	%s
+]`, fieldCommen[2], childJson)
+								} else {
+									json = fmt.Sprintf(`%s,
+"%s":[
+	%s
+]`, json, fieldCommen[2], childJson)
+								}
+							}
 
-### %s
-|参数名|类型|必填|说明|
-|:----    |:---|:----- |-----   |
-`, md, v[0], v[0])
-		fieldMds := ""
-		if len(v) > 4 {
-			fields := make([]string, len(v[3:])-1)
-			_ = copy(fields, v[3:])
-
-			for _, field := range fields {
-				fieldMd := analyzeFieldToMarkdown(messageDataMap, v[0], field)
-				if fieldMds == "" {
-					fieldMds = fmt.Sprintf(`%s%s`, fieldMds, fieldMd)
+						} else {
+							if json == "" {
+								json = fmt.Sprintf(`{
+"%s":[]`, fieldCommen[2])
+							} else {
+								json = fmt.Sprintf(`%s,
+"%s":[]`, json, fieldCommen[2])
+							}
+						}
+					} else {
+						if json == "" {
+							if cast.ToString(fieldCommen[1]) == "string" {
+								json = fmt.Sprintf(`{
+"%s":["%s"]`, fieldCommen[2], fieldCommen[2])
+							} else if InArrayWithString(cast.ToString(fieldCommen[1]), munberType) {
+								//数字类型
+								json = fmt.Sprintf(`{
+"%s":[1]`, fieldCommen[2])
+							} else if InArrayWithString(cast.ToString(fieldCommen[1]), floatType) {
+								// 浮点数类型
+								json = fmt.Sprintf(`{
+"%s":[1.1]`, fieldCommen[2])
+							}
+						} else {
+							if cast.ToString(fieldCommen[1]) == "string" {
+								json = fmt.Sprintf(`%s,
+"%s":["%s"]`, json, fieldCommen[2], fieldCommen[2])
+							} else if InArrayWithString(cast.ToString(fieldCommen[1]), munberType) {
+								//数字类型
+								json = fmt.Sprintf(`%s,
+"%s":[1]`, json, fieldCommen[2])
+							} else if InArrayWithString(cast.ToString(fieldCommen[1]), floatType) {
+								// 浮点数类型
+								json = fmt.Sprintf(`%s,
+"%s":[1.1]`, json, fieldCommen[2])
+							}
+						}
+					}
 				} else {
-					fieldMds = fmt.Sprintf(`%s
-%s`, fieldMds, fieldMd)
-				}
+					//非数组
+					if !InArrayWithString(cast.ToString(fieldCommen[0]), dataType) {
+						textC, isOk := messageDataMap[messageName+"_"+fieldCommen[0]]
+						if isOk {
+							childJson := getMessageJson(textC, messageDataMap, messageName+"_"+fieldCommen[0])
+							if childJson == "" {
+								if json == "" {
+									json = fmt.Sprintf(`{
+"%s":{}`, fieldCommen[1])
+								} else {
+									json = fmt.Sprintf(`%s,
+"%s":{}`, json, fieldCommen[1])
+								}
+							} else {
+								if json == "" {
+									json = fmt.Sprintf(`{
+"%s":%s`, fieldCommen[1], childJson)
+								} else {
+									json = fmt.Sprintf(`%s,
+"%s":%s`, json, fieldCommen[1], childJson)
+								}
+							}
+						} else {
+							if json == "" {
+								json = fmt.Sprintf(`{
+"%s":{}`, fieldCommen[1])
+							} else {
+								json = fmt.Sprintf(`%s,
+"%s":{}`, json, fieldCommen[1])
+							}
+						}
 
+					} else {
+						if json == "" {
+							if cast.ToString(fieldCommen[0]) == "string" {
+								json = fmt.Sprintf(`{
+"%s":"%s"`, fieldCommen[1], fieldCommen[1])
+							} else if cast.ToString(fieldCommen[0]) == "bool" {
+								json = fmt.Sprintf(`{
+"%s":true`, fieldCommen[1])
+							} else if InArrayWithString(cast.ToString(fieldCommen[0]), munberType) {
+								//数字类型
+								json = fmt.Sprintf(`{
+"%s":1`, fieldCommen[1])
+							} else {
+								// 浮点数类型
+								json = fmt.Sprintf(`{
+"%s":1.1`, fieldCommen[1])
+							}
+						} else {
+							if cast.ToString(fieldCommen[0]) == "string" {
+								json = fmt.Sprintf(`%s,
+"%s":"%s"`, json, fieldCommen[1], fieldCommen[1])
+							} else if cast.ToString(fieldCommen[0]) == "bool" {
+								json = fmt.Sprintf(`{
+"%s":true`, fieldCommen[1])
+							} else if InArrayWithString(cast.ToString(fieldCommen[0]), munberType) {
+								//数字类型
+								json = fmt.Sprintf(`%s,
+"%s":1`, json, fieldCommen[1])
+							} else if InArrayWithString(cast.ToString(fieldCommen[0]), floatType) {
+								// 浮点数类型
+								json = fmt.Sprintf(`%s,
+"%s":1.1`, json, fieldCommen[1])
+							}
+						}
+					}
+				}
 			}
 		}
-		md = md + fieldMds
 	}
-	err = ioutil.WriteFile("./test.md", []byte(md), os.ModePerm)
-	if err != nil {
-		panic(err)
+	if json != "" {
+		json = fmt.Sprintf(`%s
+}`, json)
 	}
-	fmt.Println("success")
+	return json
+}
+
+func getMessageMarkdown(text []string, messageDataMap map[string][]string, messageName string) string {
+	child := make(map[string]string)
+	md := `
+|参数名|类型|必填|说明|
+|:----    |:---|:----- |-----   |`
+	fieldMds := ""
+	if len(text) > 4 {
+		fields := make([]string, len(text[3:])-1)
+		_ = copy(fields, text[3:])
+		for _, field := range fields {
+			commet := strings.Split(field, ";")
+			fieldCommen := fieldSplit(commet[0])
+			fieldType := ""
+			if len(fieldCommen) >= 4 {
+				if fieldCommen[0] == "repeated" {
+					//数组
+					if !InArrayWithString(cast.ToString(fieldCommen[1]), dataType) {
+						textC, isOk := messageDataMap[messageName+"_"+fieldCommen[1]]
+						if isOk {
+							child[messageName+"_"+fieldCommen[1]] = getMessageMarkdown(textC, messageDataMap, messageName+"_"+fieldCommen[1])
+							fieldMds = fmt.Sprintf("|%s|[][%s](#%s)|", fieldCommen[2], messageName+"_"+fieldCommen[1], messageName+"_"+fieldCommen[1])
+						} else {
+							textC, isOk = messageDataMap[fieldCommen[1]]
+							if isOk {
+								child[fieldCommen[1]] = getMessageMarkdown(textC, messageDataMap, fieldCommen[1])
+							}
+							fieldMds = fmt.Sprintf("|%s|[][%s](#%s)|", fieldCommen[2], fieldCommen[1], fieldCommen[1])
+						}
+					} else {
+						fieldMds = fmt.Sprintf("|%s|[]%s|", fieldCommen[2], fieldCommen[1])
+					}
+					fieldType = fieldCommen[1]
+				} else {
+					//非数组
+					if !InArrayWithString(cast.ToString(fieldCommen[0]), dataType) {
+						textC, isOk := messageDataMap[messageName+"_"+fieldCommen[0]]
+						if isOk {
+							child[messageName+"_"+fieldCommen[0]] = getMessageMarkdown(textC, messageDataMap, messageName+"_"+fieldCommen[0])
+							fieldMds = fmt.Sprintf("|%s|[%s](#%s)|", fieldCommen[1], messageName+"_"+fieldCommen[0], messageName+"_"+fieldCommen[0])
+						} else {
+							textC, isOk = messageDataMap[fieldCommen[0]]
+							if isOk {
+								child[fieldCommen[0]] = getMessageMarkdown(textC, messageDataMap, fieldCommen[0])
+							}
+							fieldMds = fmt.Sprintf("|%s|[%s](#%s)|", fieldCommen[1], fieldCommen[0], fieldCommen[0])
+						}
+
+					} else {
+						fieldMds = fmt.Sprintf("|%s|%s|", fieldCommen[1], fieldCommen[0])
+					}
+					fieldType = fieldCommen[0]
+				}
+				desc := analyzeDescComment(commet[1])
+				if fieldType != "bool" {
+					if strings.Contains(commet[1], "validate:") {
+						//字段有验证规则
+						validateFields := analyzeValidate(commet[1])
+						required, isOk := validateFields["required"]
+						if isOk && required == "true" {
+							fieldMds = fmt.Sprintf("%s%s|%s|", fieldMds, "true", desc)
+						} else {
+							fieldMds = fmt.Sprintf("%s%s|%s|", fieldMds, "false", desc)
+						}
+					} else {
+						fieldMds = fmt.Sprintf("%s%s|%s|", fieldMds, "false", desc)
+					}
+				} else {
+					fieldMds = fmt.Sprintf("%s%s|%s|", fieldMds, "false", desc)
+				}
+			}
+			if fieldMds != "" {
+				md = fmt.Sprintf(`%s
+%s`, md, fieldMds)
+			}
+		}
+	}
+	if len(child) > 0 {
+		for key, value := range child {
+			md = fmt.Sprintf(`%s
+
+<details>
+ <summary>
+ <code>%s </code>
+  </summary>
+
+%s
+
+</details>`, md, key, value)
+		}
+	}
+	fmt.Println(md)
+	return md
 }
 
 type Field struct {
