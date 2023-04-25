@@ -1,12 +1,10 @@
-package main
+package gotoprotobuf
 
 import (
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"gotoprotobuf/models"
-	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -23,22 +21,15 @@ type FieldData struct {
 	Comment   string
 }
 
-func main() {
-	//通过命令把.go文件内结构体生成生成proto的message
-	fileToProtoWithCmd()
-	//通过结构体生成proto的message
-	//structToProto()
+//	//通过命令把.go文件内结构体生成生成proto的message
+//	fileToProtoWithCmd()
+//	//通过结构体生成proto的message
+//	structToProto()
+//
 
-}
-
-func fileToProtoWithCmd() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: go run main.go <filename>")
-		return
-	}
-
+func Gotoprotobuf(fileName string) {
 	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, os.Args[1], nil, parser.ParseComments)
+	node, err := parser.ParseFile(fset, fileName, nil, parser.ParseComments)
 	if err != nil {
 		fmt.Printf("Error parsing file: %v\n", err)
 		return
@@ -126,8 +117,10 @@ func getFieldTypeName(expr ast.Expr) string {
 	}
 }
 
+type User struct{}
+
 func structToProto() {
-	demo := models.User{}
+	demo := User{}
 	v := reflect.ValueOf(demo)
 	t := v.Type()
 	data := []FieldData{}

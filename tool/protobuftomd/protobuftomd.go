@@ -1,4 +1,4 @@
-package main
+package protobuftomd
 
 import (
 	"fmt"
@@ -44,14 +44,9 @@ var (
 	}
 )
 
-func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: go run main.go <filename>")
-		return
-	}
-	fmt.Println(os.Args)
+func ProtoBufToMd(fileName string) {
 	// 读取 proto 文件内容
-	protoContent, err := ioutil.ReadFile("./proto/test.proto")
+	protoContent, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		fmt.Printf("Error parsing file: %v\n", err)
 		return
@@ -180,11 +175,13 @@ func main() {
 		}
 	}
 
-	err = ioutil.WriteFile("./test.md", []byte(md), os.ModePerm)
+	err = ioutil.WriteFile("./Api.md", []byte(md), os.ModePerm)
 	if err != nil {
-		panic(err)
+		fmt.Println("create file error：" + err.Error())
+		return
 	}
-	fmt.Println("success")
+	fmt.Println("protobuf to markedown success")
+	return
 }
 
 func getMapMessageToDataWithCommen(messageComment []string) (messageToDataMap map[string]MessageToData) {
