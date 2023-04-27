@@ -20,7 +20,7 @@ func main() {
 	}
 	switch os.Args[1] {
 	case ProtoBufToMd:
-		protobuftomd.ProtoBufToMd(os.Args[2])
+		protobuftomd.ProtoBufToMd(os.Args[2], os.Args[3])
 		break
 	case GoToProtoBuf:
 		gotoprotobuf.Gotoprotobuf(os.Args[2])

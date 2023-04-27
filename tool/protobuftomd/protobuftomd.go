@@ -44,7 +44,7 @@ var (
 	}
 )
 
-func ProtoBufToMd(fileName string) {
+func ProtoBufToMd(fileName string, serviceName string) {
 	// 读取 proto 文件内容
 	protoContent, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -108,45 +108,48 @@ func ProtoBufToMd(fileName string) {
 			}
 		}
 	}
-	md := `
+	md := ""
+	if serviceName == "" {
+
+		md = `
 # ` + protoName + `-Service 接口文档
 
 `
-	serviceProtoDataMap := []map[string]string{}
-	if len(serviceProtoData) > 0 {
-		for _, v := range serviceProtoData {
-			serviceData := serviceStrSplit(v)
-			if serviceData != nil {
-				serviceComment, isOk := serviceData["commen"]
-				if isOk {
-					md = fmt.Sprintf(`%s
+		serviceProtoDataMap := []map[string]string{}
+		if len(serviceProtoData) > 0 {
+			for _, v := range serviceProtoData {
+				serviceData := serviceStrSplit(v)
+				if serviceData != nil {
+					serviceComment, isOk := serviceData["commen"]
+					if isOk {
+						md = fmt.Sprintf(`%s
 - ## [%s%s      %s](#%s)`, md, protoName, serviceData["serviceName"], serviceComment, serviceData["serviceName"])
-				} else {
-					md = fmt.Sprintf(`%s
+					} else {
+						md = fmt.Sprintf(`%s
 - ## [%s%s](#%s)      `, md, protoName, serviceData["serviceName"], serviceData["serviceName"])
+					}
 				}
+				serviceProtoDataMap = append(serviceProtoDataMap, serviceData)
 			}
-			serviceProtoDataMap = append(serviceProtoDataMap, serviceData)
 		}
-	}
-	if len(serviceProtoDataMap) > 0 {
-		for _, v := range serviceProtoDataMap {
-			reqMessageMd := ""
-			reqMessageJosn := ""
-			resMessageMd := ""
-			resMessageJosn := ""
+		if len(serviceProtoDataMap) > 0 {
+			for _, v := range serviceProtoDataMap {
+				reqMessageMd := ""
+				reqMessageJosn := ""
+				resMessageMd := ""
+				resMessageJosn := ""
 
-			reqMessageToData, isOk := messageToDataMap[v["reqName"]]
-			if isOk {
-				reqMessageMd = reqMessageToData.MarkedownData
-				reqMessageJosn = reqMessageToData.JsonData
-			}
-			resMessageToData, isOk := messageToDataMap[v["resName"]]
-			if isOk {
-				resMessageMd = resMessageToData.MarkedownData
-				resMessageJosn = resMessageToData.JsonData
-			}
-			md = fmt.Sprintf(`%s
+				reqMessageToData, isOk := messageToDataMap[v["reqName"]]
+				if isOk {
+					reqMessageMd = reqMessageToData.MarkedownData
+					reqMessageJosn = reqMessageToData.JsonData
+				}
+				resMessageToData, isOk := messageToDataMap[v["resName"]]
+				if isOk {
+					resMessageMd = resMessageToData.MarkedownData
+					resMessageJosn = resMessageToData.JsonData
+				}
+				md = fmt.Sprintf(`%s
 
 
 <a name="%s"></a>
@@ -172,10 +175,74 @@ func ProtoBufToMd(fileName string) {
 %s
 %s
 `, md, v["serviceName"], protoName, v["serviceName"], reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
+			}
+		}
+	} else {
+		serviceProtoDataMap := []map[string]string{}
+		if len(serviceProtoData) > 0 {
+			for _, v := range serviceProtoData {
+				serviceData := serviceStrSplit(v)
+
+				serviceProtoDataMap = append(serviceProtoDataMap, serviceData)
+			}
+		}
+		if len(serviceProtoDataMap) > 0 {
+			for _, v := range serviceProtoDataMap {
+				if cast.ToString(v["serviceName"]) != serviceName {
+					continue
+				}
+				reqMessageMd := ""
+				reqMessageJosn := ""
+				resMessageMd := ""
+				resMessageJosn := ""
+
+				reqMessageToData, isOk := messageToDataMap[v["reqName"]]
+				if isOk {
+					reqMessageMd = reqMessageToData.MarkedownData
+					reqMessageJosn = reqMessageToData.JsonData
+				}
+				resMessageToData, isOk := messageToDataMap[v["resName"]]
+				if isOk {
+					resMessageMd = resMessageToData.MarkedownData
+					resMessageJosn = resMessageToData.JsonData
+				}
+				md = fmt.Sprintf(`%s
+
+
+<a name="%s"></a>
+
+## 前端method: %s%s
+
+## 请求方式: **POST,GET**
+
+### 请求参数:
+
+%s
+
+### 请求例子:
+%s
+%s
+%s
+### 响应参数:
+
+%s
+
+### 响应例子:
+%s
+%s
+%s
+`, md, v["serviceName"], protoName, v["serviceName"], reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
+				break
+			}
 		}
 	}
-
-	err = ioutil.WriteFile("./Api.md", []byte(md), os.ModePerm)
+	mdFileName := ""
+	if serviceName != "" {
+		mdFileName = fmt.Sprintf("%s-%s.md", protoName, serviceName)
+	} else {
+		mdFileName = fmt.Sprintf("%s.md", protoName)
+	}
+	err = ioutil.WriteFile(mdFileName, []byte(md), os.ModePerm)
 	if err != nil {
 		fmt.Println("create file error：" + err.Error())
 		return
