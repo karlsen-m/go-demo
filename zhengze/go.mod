@@ -1,3 +1,3 @@
-module micros-dahong/demo/zhengze
+module zhengze
 
 go 1.17

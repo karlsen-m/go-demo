@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"regexp"
+	"strings"
 )
 
 func main() {
@@ -34,8 +34,10 @@ func main() {
 	//}
 	//姓名
 	//r, _ := regexp.Compile(`^[^\da-zA-Z]+$`)
-	r, _ := regexp.Compile(`^[1][3-9][0-9]{9}$`)
-	fmt.Println(r.MatchString("13227896554"))
-	fmt.Println("身份证号码正确")
+	//r, _ := regexp.Compile(`^[1][3-9][0-9]{9}$`)
+	//fmt.Println(r.MatchString("13227896554"))
+	str := "modelswww"
+
+	fmt.Println("身份证号码正确", strings.Title(str))
 
 }
