@@ -15,9 +15,16 @@ const (
 )
 
 func main() {
-
+	if len(os.Args) == 2 {
+		if os.Args[1] != "-h" {
+			fmt.Println("-bufmd: <fileName> <serviceName> protobuf to markdown example bufmd ./test.proto Ping")
+			fmt.Println("-gobuf: <fileName> model struct to protobuf example gobuf ./test.go")
+			fmt.Println("-add_model: <modelName>  <fileName> modelName create model struct to file example add_model admin ./models/admin.go")
+			return
+		}
+	}
 	if len(os.Args) < 3 {
-		fmt.Println("Usage: go run main.go <type> <filename>")
+		fmt.Println("Usage: go run main.go <type> <option>")
 		return
 	}
 	switch os.Args[1] {
