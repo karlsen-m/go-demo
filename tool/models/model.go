@@ -13,7 +13,52 @@ func CreateModel(modelName string, fileName string) {
 		return
 	}
 	modelNameCapital := strings.Title(modelName)
+	var modelBase = `
 
+import (
+	"github.com/spf13/cast"
+	"go-common/tools/helpers"
+	"go-common/tools/snowflake"
+	"go-common/tools/helpers"
+	"time"
+	"utils/db"
+	"fmt"
+)
+func init() {
+	debug := helpers.GetConfigToBool("appDebug", "false")
+	// configTableOptions := ""
+	otherTableOptions := ""
+	if !debug {
+		// configTableOptions = "shardkey=noshardkey_allset"
+		otherTableOptions = "shardkey=id"
+	}
+	fmt.Println(otherTableOptions)
+	_ = db.GetDB().Set("gorm:table_options", otherTableOptions+" comment '服务表-使用中'").AutoMigrate(&Service{})
+}
+
+type Marketer struct {
+	MarketerIsSuper bool   ` + "`" + `json:"marketerIsSuper" gorm:"not null;comment:员工是否为后台超级管理员"` + "`" + `
+	MarketerId      string ` + "`" + `json:"marketerId" gorm:"index;not null;size:50;comment:员工id"` + "`" + `
+	MarketerName    string ` + "`" + `json:"marketerName" gorm:"not null;size:200;comment:员工姓名"` + "`" + `
+	MarketerMobile  string ` + "`" + `json:"marketerMobile" gorm:"index;not null;size:30;comment:员工手机号"` + "`" + `
+	MarketerOrgId   string ` + "`" + `json:"marketerOrgId" gorm:"index;not null;size:50;comment:员工所属组织架构"` + "`" + `
+}
+
+type Operator struct {
+	OperatorIsSuper bool      ` + "`" + `json:"operatorIsSuper" gorm:"not null;comment:操作员是否为超管"` + "`" + `
+	OperatorUserId  string    ` + "`" + `json:"operatorUserId" gorm:"not null;size:50;comment:操作员id"` + "`" + `
+	OperatorMobile  string    ` + "`" + `json:"operatorMobile" gorm:"not null;size:30;comment:操作员手机号"` + "`" + `
+	OperatorName    string    ` + "`" + `json:"operatorName" gorm:"not null;size:200;comment:操作员名"` + "`" + `
+	OperatorOrgId   string    ` + "`" + `json:"operatorOrgId" gorm:"not null;size:50;comment:操作员所属组织架构id"` + "`" + `
+	OperatedAt      time.Time ` + "`" + `json:"operatedAt" gorm:"not null;comment:操作时间"` + "`" + `
+}
+
+
+
+func GenerateId() uint64 {
+	return cast.ToUint64(snowflake.GenId())
+}
+`
 	var modelTemplate = `
 package models
 	
@@ -166,14 +211,22 @@ func Get` + modelNameCapital + `List(ctx context.Context, search map[string]inte
 `
 	addFileName := ""
 	if fileName != "" {
-		addFileName = addFileName
+		addFileName = fileName
 	} else {
 		addFileName = fmt.Sprintf("%s.go", modelName)
 	}
-	err := ioutil.WriteFile(addFileName, []byte(modelTemplate), os.ModePerm)
-	if err != nil {
-		fmt.Println("create model error：" + err.Error())
-		return
+	if modelName == "base" {
+		err := ioutil.WriteFile(addFileName, []byte(modelBase), os.ModePerm)
+		if err != nil {
+			fmt.Println("create model error：" + err.Error())
+			return
+		}
+	} else {
+		err := ioutil.WriteFile(addFileName, []byte(modelTemplate), os.ModePerm)
+		if err != nil {
+			fmt.Println("create model error：" + err.Error())
+			return
+		}
 	}
 	fmt.Println("create model success")
 	return
