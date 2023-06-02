@@ -115,7 +115,7 @@ func (m *` + modelNameCapital + `) SaveR(ctx context.Context) error {
 	client := redis.GetClient()
 	key := ` + modelNameCapital + `Key + cast.ToString(m.Id)
 	mByte, _ := json.Marshal(m)
-	return client.Set(ctx, key, string(mByte), 7*24*time.Hour).Err()
+	return client.Set(ctx, key, string(mByte), 1*24*time.Hour).Err()
 }
 	
 func (m *` + modelNameCapital + `) IsExist() bool {
