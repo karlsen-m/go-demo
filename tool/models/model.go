@@ -22,6 +22,7 @@ import (
 	"go-common/tools/helpers"
 	"time"
 	"utils/db"
+	"utils/modelbase"
 	"fmt"
 )
 func init() {
@@ -34,6 +35,14 @@ func init() {
 	}
 	fmt.Println(otherTableOptions)
 	_ = db.GetDB().Set("gorm:table_options", otherTableOptions+" comment '服务表-使用中'").AutoMigrate(&Service{})
+}
+
+func NewModelClient(modelName string) modelbase.ModelClient {
+	switch modelName {
+	case "modelName":
+		return NewModel()
+	}
+	return nil
 }
 
 type Marketer struct {
@@ -86,72 +95,76 @@ type ` + modelNameCapital + ` struct {
 	CreatedAt time.Time ` + "`" + `json:"createdAt" gorm:"comment:创建时间"` + "`" + `
 	UpdatedAt time.Time ` + "`" + `json:"updatedAt" gorm:"comment:更新时间"` + "`" + `
 }
+
+func NewAdmin() *` + modelNameCapital + ` {
+	return &` + modelNameCapital + `{}
+}
 	
-func (` + modelName + ` ` + modelNameCapital + `) Save(ctx context.Context) error {
+func (m *` + modelNameCapital + `) Save(ctx context.Context) error {
 	session := db.GetDB().WithContext(ctx)
-	err := session.Save(&` + modelName + `).Error
+	err := session.Save(m).Error
 	if err != nil {
 		return err
 	}
-	if ` + modelName + `.IsExist() {
-		return ` + modelName + `.SaveR(ctx)
+	if m.IsExist() {
+		return m.SaveR(ctx)
 	}
 	return nil
 }
-func (` + modelName + ` *` + modelNameCapital + `) SaveR(ctx context.Context) error {
+func (m *` + modelNameCapital + `) SaveR(ctx context.Context) error {
 	client := redis.GetClient()
-	key := ` + modelNameCapital + `Key + cast.ToString(` + modelName + `.Id)
-	` + modelName + `Byte, _ := json.Marshal(` + modelName + `)
-	return client.Set(ctx, key, string(` + modelName + `Byte), 7*24*time.Hour).Err()
+	key := ` + modelNameCapital + `Key + cast.ToString(m.Id)
+	mByte, _ := json.Marshal(m)
+	return client.Set(ctx, key, string(mByte), 7*24*time.Hour).Err()
 }
 	
-func (` + modelName + ` *` + modelNameCapital + `) IsExist() bool {
-	if ` + modelName + ` == nil || ` + modelName + `.Id == 0 || !` + modelName + `.DeletedAt.IsZero() {
+func (m *` + modelNameCapital + `) IsExist() bool {
+	if m == nil || m.Id == 0 || !m.DeletedAt.IsZero() {
 		return false
 	}
 	return true
 }
 
-func (` + modelName + ` *` + modelNameCapital + `) DeleteR(ctx context.Context) error {
+func (m *` + modelNameCapital + `) DeleteR(ctx context.Context) error {
 	client := redis.GetClient()
-	key := ` + modelNameCapital + `Key + cast.ToString(` + modelName + `.Id)
+	key := ` + modelNameCapital + `Key + cast.ToString(m.Id)
 	return client.Del(ctx, key).Err()
 }
-func (` + modelName + ` *` + modelNameCapital + `) Delete(ctx context.Context) (err error) {
-	` + modelName + `.DeletedAt = helpers.GetNowTime()
-	err = ` + modelName + `.Save(ctx)
+func (m *` + modelNameCapital + `) Delete(ctx context.Context) (err error) {
+	m.DeletedAt = helpers.GetNowTime()
+	err = m.Save(ctx)
 	if err != nil {
 		return
 	}
-	err = ` + modelName + `.DeleteR(ctx)
+	err = m.DeleteR(ctx)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func Get` + modelNameCapital + `ById(ctx context.Context, id uint64) (` + modelName + ` ` + modelNameCapital + `, err error) {
-	` + modelName + `, err = Get` + modelNameCapital + `ByIdWithRedis(ctx, id)
+func (m *` + modelNameCapital + `) GetById(ctx context.Context, id uint64) (interface{}, error) {
+	` + modelName + `, err := m.GetByIdWithRedis(ctx, id)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if ` + modelName + `.Id != 0 {
 		return ` + modelName + `, nil
 	}
-	` + modelName + `, err = Get` + modelNameCapital + `ByIdWithDb(ctx, id)
+	` + modelName + `, err = m.GetByIdWithDb(ctx, id)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if ` + modelName + `.Id != 0 {
 		err = ` + modelName + `.SaveR(ctx)
 		if err != nil {
-			return
+			return nil, err
 		}
 	}
-	return
+	return ` + modelName + `, nil
 }
 	
-func Get` + modelNameCapital + `ByIdWithRedis(ctx context.Context, id uint64) (` + modelName + ` ` + modelNameCapital + `, err error) {
+func (m *` + modelNameCapital + `) GetByIdWithRedis(ctx context.Context, id uint64) (` + modelName + ` ` + modelNameCapital + `, err error) {
 	client := redis.GetClient()
 	key := ` + modelNameCapital + `Key + cast.ToString(id)
 	isOkKey := client.Exists(ctx, key).Val()
@@ -169,7 +182,7 @@ func Get` + modelNameCapital + `ByIdWithRedis(ctx context.Context, id uint64) (`
 	return ` + modelName + `, nil
 }
 	
-func Get` + modelNameCapital + `ByIdWithDb(ctx context.Context, id uint64) (` + modelName + ` ` + modelNameCapital + `, err error) {
+func (m *` + modelNameCapital + `) GetByIdWithDb(ctx context.Context, id uint64) (` + modelName + ` ` + modelNameCapital + `, err error) {
 	session := db.GetDB().WithContext(ctx)
 	err = session.Where("id = ?", id).Where("deleted_at = ?", time.Time{}).First(&` + modelName + `).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -178,7 +191,7 @@ func Get` + modelNameCapital + `ByIdWithDb(ctx context.Context, id uint64) (` + 
 	return
 }
 
-func Get` + modelNameCapital + `ListSearch(ctx context.Context, search map[string]interface{}) *gorm.DB {
+func (m *` + modelNameCapital + `) GetListSearch(ctx context.Context, search map[string]interface{}) *gorm.DB {
 	session := db.GetDB().WithContext(ctx).Model(&` + modelNameCapital + `{}).Where("deleted_at = ?", time.Time{})
 	for i, v := range search {
 		switch i {
@@ -192,22 +205,30 @@ func Get` + modelNameCapital + `ListSearch(ctx context.Context, search map[strin
 	return session
 }
 
-//分类总数
-func Get` + modelNameCapital + `Total(ctx context.Context, search map[string]interface{}) (total int64, err error) {
-	session := Get` + modelNameCapital + `ListSearch(ctx, search)
+//总数
+func (m *` + modelNameCapital + `)GetTotal(ctx context.Context, search map[string]interface{}) (total int64, err error) {
+	session := m.GetListSearch(ctx, search)
 	err = session.Count(&total).Error
 	return
 }
 
-//分类列表
-func Get` + modelNameCapital + `List(ctx context.Context, search map[string]interface{}, page, pageSize int) (list []` + modelNameCapital + `, err error) {
-	session := Get` + modelNameCapital + `ListSearch(ctx, search)
+//列表
+func (m *` + modelNameCapital + `) GetList(ctx context.Context, search map[string]interface{}, page, pageSize int) (list []interface{}, err error) {
+	session := m.GetListSearch(ctx, search)
 	err = session.Order("sort desc").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = nil
 	}
 	return
 }
+
+func (m *` + modelNameCapital + `) ReturnData(ctx context.Context, thisModel interface{}, search map[string]interface{}) interface{} {
+	` + modelName + ` := thisModel.(` + modelNameCapital + `)
+
+	return nil
+}
+
+
 `
 	addFileName := ""
 	if fileName != "" {

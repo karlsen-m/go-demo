@@ -1,0 +1,12 @@
+github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
+github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
+github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
+github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.664 h1:Han+TNmpXPp45uE8h8yU95QZbhglrpSl+TG7qec6eEI=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.664/go.mod h1:7sCQWVkxcsR38nffDW057DRGk8mUjK1Ing/EFOK8s8Y=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/faceid v1.0.664 h1:PlZkoQHao6y10N347LZcdfTROrlRi6CB4Jf+WXEranU=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/faceid v1.0.664/go.mod h1:h9g+3GYfdG73hgIE2GrZZaTIK1nG8I071GMT0H4N3FQ=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sts v1.0.664 h1:g26wepQOhzkescDI6oodQ7vJbZ0TpCPPgyyGKZMw8/0=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sts v1.0.664/go.mod h1:1cVk0VdkJuS44eAKWqmQ42nfQXx8XEJCNdY9AGtvAVU=
+gorm.io/gorm v1.25.1 h1:nsSALe5Pr+cM3V1qwwQ7rOkw+6UeLrX5O4v3llhHa64=
+gorm.io/gorm v1.25.1/go.mod h1:L4uxeKpfBml98NYqVqwAdmV1a2nBtAec/cf3fpucW/k=
