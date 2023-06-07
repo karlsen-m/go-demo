@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"tool/gotoprotobuf"
+	"tool/logic"
 	"tool/models"
 	"tool/protobuftomd"
 )
@@ -12,6 +13,7 @@ const (
 	ProtoBufToMd = "bufmd"
 	GoToProtoBuf = "gobuf"
 	CreateModel  = "add_model"
+	CreateLogic  = "add_logic"
 )
 
 func main() {
@@ -20,6 +22,7 @@ func main() {
 			fmt.Println("-bufmd: <fileName> <serviceName> protobuf to markdown example bufmd ./test.proto Ping")
 			fmt.Println("-gobuf: <fileName> model struct to protobuf example gobuf ./test.go")
 			fmt.Println("-add_model: <modelName>  <fileName> modelName create model struct to file example add_model admin ./models/admin.go")
+			fmt.Println("-add_logic: <pkgName> <modelName> <resDataName> <logicType> <apiName> create model struct to file example add_logic admin admin AdminData edit EditAdmin")
 			return
 		}
 	}
@@ -44,10 +47,16 @@ func main() {
 		} else {
 			models.CreateModel(os.Args[2], os.Args[3])
 		}
-
+		break
+	case CreateLogic:
+		if len(os.Args) >= 7 {
+			logic.CreateLogic(os.Args[2], os.Args[3], os.Args[4], os.Args[5], os.Args[6])
+		} else {
+			fmt.Println("Usage: go run main.go <type> <option>")
+		}
 		break
 	default:
-		fmt.Println("Usage: go run main.go <type> <filename>")
+		fmt.Println("Usage: go run main.go <type> error")
 		return
 	}
 }

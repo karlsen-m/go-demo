@@ -14,6 +14,7 @@ func CreateModel(modelName string, fileName string) {
 	}
 	modelNameCapital := strings.Title(modelName)
 	var modelBase = `
+package models
 
 import (
 	"github.com/spf13/cast"
@@ -96,7 +97,7 @@ type ` + modelNameCapital + ` struct {
 	UpdatedAt time.Time ` + "`" + `json:"updatedAt" gorm:"comment:更新时间"` + "`" + `
 }
 
-func NewAdmin() *` + modelNameCapital + ` {
+func New` + modelNameCapital + `() *` + modelNameCapital + ` {
 	return &` + modelNameCapital + `{}
 }
 	
