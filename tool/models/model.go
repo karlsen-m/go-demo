@@ -194,13 +194,15 @@ func (m *` + modelNameCapital + `) GetByIdWithDb(ctx context.Context, id uint64)
 
 func (m *` + modelNameCapital + `) GetListSearch(ctx context.Context, search map[string]interface{}) *gorm.DB {
 	session := db.GetDB().WithContext(ctx).Model(&` + modelNameCapital + `{}).Where("deleted_at = ?", time.Time{})
-	for i, v := range search {
-		switch i {
-			case "channel_id":
-				if v.(string) != "" {
-					session = session.Where("channel_id = ?", v.(string))
-				}
-			break
+	if search != nil {
+		for i, v := range search {
+			switch i {
+				case "channelId":
+					if v.(string) != "" {
+						session = session.Where("channel_id = ?", v.(string))
+					}
+				break
+			}
 		}
 	}
 	return session
@@ -214,13 +216,15 @@ func (m *` + modelNameCapital + `)GetTotal(ctx context.Context, search map[strin
 }
 
 //列表
-func (m *` + modelNameCapital + `) GetList(ctx context.Context, search map[string]interface{}, page, pageSize int) (list []interface{}, err error) {
+func (m *` + modelNameCapital + `) GetList(ctx context.Context, search map[string]interface{}, page, pageSize int) (interface{}, error) {
 	session := m.GetListSearch(ctx, search)
-	err = session.Order("sort desc").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error
+	var list []` + modelNameCapital + `
+	var err error
+	err = session.Order("id desc").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = nil
 	}
-	return
+	return list, err
 }
 
 func (m *` + modelNameCapital + `) ReturnData(ctx context.Context, thisModel interface{}, search map[string]interface{}) interface{} {

@@ -11,6 +11,8 @@ func createListLogic(pkgName, apiName, modelName, resDataName string) string {
 		Meta: mate,
 	}
 	resDataReturn := &` + pkgName + `.` + apiName + `Data{}
+	channelId := in.GetChannelId()
+	page := cast.ToInt(in.GetPage())
 	page := cast.ToInt(in.GetPage())
 	pageSize := cast.ToInt(in.GetPageSize())
 	if page < 1 {
@@ -20,6 +22,7 @@ func createListLogic(pkgName, apiName, modelName, resDataName string) string {
 		pageSize = 10
 	}
 	search := make(map[string]interface{})
+	search["channelId"] = channelId
 	modelClient := models.NewModelClient("` + modelName + `")
 	total, err := modelClient.GetTotal(l.ctx, search)
 	if err != nil {
@@ -38,12 +41,13 @@ func createListLogic(pkgName, apiName, modelName, resDataName string) string {
 		resp.Data = resDataReturn
 		return resp, nil
 	}
-	modelList, err := modelClient.GetList(l.ctx, search, page, pageSize)
+	modelListI, err := modelClient.GetList(l.ctx, search, page, pageSize)
 	if err != nil {
 		mate.Code = ApiCode.DB_ERROR
 		mate.Msg = err.Error()
 		return resp, nil
 	}
+	modelList := modelListI.([]models.` + modelName + `)
 	if len(modelList) <= 0 {
 		resp.Data = resDataReturn
 		return resp, nil
