@@ -13,7 +13,6 @@ func createListLogic(pkgName, apiName, modelName, resDataName string) string {
 	resDataReturn := &` + pkgName + `.` + apiName + `Data{}
 	channelId := in.GetChannelId()
 	page := cast.ToInt(in.GetPage())
-	page := cast.ToInt(in.GetPage())
 	pageSize := cast.ToInt(in.GetPageSize())
 	if page < 1 {
 		page = 1
