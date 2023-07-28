@@ -84,13 +84,42 @@ func Gotoprotobuf(fileName string) {
 	}
 	if len(protoData) > 0 {
 		for _, data := range protoData {
-			fmt.Println(fmt.Sprintf("message %s {", data.MessageName))
+			messageName := data.MessageName
+			if strings.Contains(fileName, strings.ToLower(messageName[:1])+messageName[1:]) {
+				fmt.Println("\n")
+				fmt.Println("\n")
+				fmt.Println(fmt.Sprintf("rpc Edit%s(Edit%sReq) returns(Edit%sRes){};", data.MessageName, data.MessageName, data.MessageName))
+				fmt.Println(fmt.Sprintf("rpc Get%sDetail(Get%sReq) returns(Get%sRes){};", data.MessageName, data.MessageName, data.MessageName))
+				fmt.Println(fmt.Sprintf("rpc Del%s(Del%sReq) returns(Del%sRes){};", data.MessageName, data.MessageName, data.MessageName))
+				fmt.Println(fmt.Sprintf("rpc Get%sList(Get%sReq) returns(Get%sRes){};", data.MessageName, data.MessageName, data.MessageName))
+				fmt.Println("\n")
+				GetDetailBuf(data.MessageName)
+				DeleteBuf(data.MessageName)
+				ListBuf(data.MessageName)
+				EditBuf(data.MessageName, data.FieldData)
+
+			}
+		}
+		for _, data := range protoData {
+			messageName := data.MessageName
+			isBink := false
+			if strings.Contains(fileName, strings.ToLower(messageName[:1])+messageName[1:]) {
+				isBink = true
+				fmt.Println(fmt.Sprintf("message %sData {", data.MessageName))
+			} else {
+				fmt.Println(fmt.Sprintf("message %s {", data.MessageName))
+			}
+
 			if len(data.FieldData) > 0 {
 				for i, v := range data.FieldData {
 					if v.Comment != "" {
-						fmt.Println(fmt.Sprintf(`%s %s = %d;//validate:"required=true",comment:"%s"`, v.FieldType, v.Field, i+1, v.Comment))
+						if isBink {
+							fmt.Println(fmt.Sprintf(`    %s %s = %d;//comment:"%s"`, v.FieldType, v.Field, i+1, v.Comment))
+						} else {
+							fmt.Println(fmt.Sprintf(`    %s %s = %d;//validate:"required=true",comment:"%s"`, v.FieldType, v.Field, i+1, v.Comment))
+						}
 					} else {
-						fmt.Println(fmt.Sprintf("%s %s = %d;", v.FieldType, v.Field, i+1))
+						fmt.Println(fmt.Sprintf("    %s %s = %d;", v.FieldType, v.Field, i+1))
 					}
 
 				}
@@ -100,6 +129,61 @@ func Gotoprotobuf(fileName string) {
 	}
 
 }
+
+func EditBuf(serviceName string, fieldDatas []FieldData) {
+	fmt.Println(fmt.Sprintf("message Edit%sReq {", serviceName))
+	if len(fieldDatas) > 0 {
+		fmt.Println(fmt.Sprintf(`    Operator operator = 1;//validate:"required=false",comment:"操作人，网关注入"`))
+		for i, v := range fieldDatas {
+			if v.Comment != "" {
+				fmt.Println(fmt.Sprintf(`    %s %s = %d;//validate:"required=true",comment:"%s"`, v.FieldType, v.Field, i+2, v.Comment))
+			} else {
+				fmt.Println(fmt.Sprintf(`    %s %s = %d;//validate:"required=true"`, v.FieldType, v.Field, i+2))
+			}
+		}
+	}
+
+	fmt.Println("}")
+	fmt.Println(fmt.Sprintf("message Edit%sRes {", serviceName))
+	fmt.Println(fmt.Sprintf("    MetaRes meta = 1;"))
+	fmt.Println(fmt.Sprintf("    %sData data = 2;", serviceName))
+	fmt.Println(fmt.Sprintf("}"))
+}
+
+func GetDetailBuf(serviceName string) {
+	fmt.Println(fmt.Sprintf("message Get%sReq {", serviceName))
+	fmt.Println(fmt.Sprintf("    string id = 1;"))
+	fmt.Println(fmt.Sprintf("}"))
+	fmt.Println(fmt.Sprintf("message Get%sRes {", serviceName))
+	fmt.Println(fmt.Sprintf("    MetaRes meta = 1;"))
+	fmt.Println(fmt.Sprintf("    %sData data = 2;", serviceName))
+	fmt.Println(fmt.Sprintf("}"))
+}
+func DeleteBuf(serviceName string) {
+	fmt.Println(fmt.Sprintf("message Del%sReq {", serviceName))
+	fmt.Println(fmt.Sprintf("    string id = 1;"))
+	fmt.Println(fmt.Sprintf(`    Operator operator = 2;  //validate:"required=false",comment:"操作人，网关注入"`))
+	fmt.Println(fmt.Sprintf("}"))
+	fmt.Println(fmt.Sprintf("message Del%sRes {", serviceName))
+	fmt.Println(fmt.Sprintf("    MetaRes meta = 1;"))
+	fmt.Println(fmt.Sprintf("}"))
+}
+func ListBuf(serviceName string) {
+	fmt.Println(fmt.Sprintf("message Get%sListReq {", serviceName))
+	fmt.Println(fmt.Sprintf("    string page = 1;"))
+	fmt.Println(fmt.Sprintf("    string pageSize = 2;"))
+	fmt.Println(fmt.Sprintf(`    Operator operator = 3;  //validate:"required=false",comment:"操作人，网关注入"`))
+	fmt.Println(fmt.Sprintf("}"))
+	fmt.Println(fmt.Sprintf("message Get%sListReq {", serviceName))
+	fmt.Println(fmt.Sprintf("    MetaRes meta = 1;"))
+	fmt.Println(fmt.Sprintf("    Get%sListData data = 2;", serviceName))
+	fmt.Println(fmt.Sprintf("}"))
+	fmt.Println(fmt.Sprintf("message Get%sListData {", serviceName))
+	fmt.Println(fmt.Sprintf("    PageInfo pageInfo = 1;"))
+	fmt.Println(fmt.Sprintf("    repeated %sData list = 4;", serviceName))
+	fmt.Println(fmt.Sprintf("}"))
+}
+
 func getFieldTypeName(expr ast.Expr) string {
 	switch t := expr.(type) {
 	case *ast.Ident:

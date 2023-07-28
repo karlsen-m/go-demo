@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package template;
+
+option go_package="./test";
+service Test{
+    rpc GetTest (Request) returns (Response) {}
+}
+message Request{
+    string name = 1;
+}
+message Response{
+    string message = 1;
+}

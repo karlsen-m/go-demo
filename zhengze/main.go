@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -36,8 +37,12 @@ func main() {
 	//r, _ := regexp.Compile(`^[^\da-zA-Z]+$`)
 	//r, _ := regexp.Compile(`^[1][3-9][0-9]{9}$`)
 	//fmt.Println(r.MatchString("13227896554"))
-	str := "modelswww"
-
+	str := `{"cMid":[428963897048190976,428979602506285056,428979992928878592,428980357762023424,428982256355672064,429006202614509568,429012620616855552,429194687766016000,429193564120363008,429015745385918464,428984362764500992,429291144930107392,429218069551198208,429301383138095104,429223957984915456],"channelId":"imqdl86xg1ppKD1vGFpq","cityAdcode":"","districtAdcode":"","latitude":"","longitude":"","provinceAdcode":"","reviewStatus":"","search":""}`
+	searchData := make(map[string]interface{})
+	err := json.Unmarshal([]byte(str), &searchData)
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println("身份证号码正确", strings.Title(str))
 
 }

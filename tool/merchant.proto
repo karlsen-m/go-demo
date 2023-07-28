@@ -1,0 +1,558 @@
+syntax = "proto3";
+package merchant;
+option go_package="./merchant";
+service Merchant{
+  rpc Ping(PingReq) returns(PingRes){};
+  rpc EditCategory(EditCategoryReq) returns(EditCategoryRes){};// 后台添加编辑分类
+  rpc GetCategoryDetail(GetCategoryDetailReq) returns(GetCategoryDetailRes){};// 后台获取分类详情
+  rpc DelCategory(DelCategoryReq) returns(DelCategoryRes){};  // 后台删除分类
+  rpc GetCategoryList(GetCategoryListReq) returns(GetCategoryListRes){}; // 后台获取分类列表
+  rpc OperatorGetVisitList(OperatorGetVisitListReq) returns(OperatorGetVisitListRes){}; // 跟进列表
+  //商户标签列表
+  rpc MerTagsEdit(TagsCreateReq) returns(TagsEditResp){};
+  rpc MerTagsList(TagsListReq) returns (TagsListResp){};
+  rpc MerTagsDelete(TagDeleteReq) returns (TagDeleteRes){};
+
+  // 公共接口
+  rpc EditMerchant(EditMerchantReq) returns(EditMerchantRes){};// 添加编辑商户
+  rpc GetMerchantDetail(GetMerchantDetailReq) returns(GetMerchantDetailRes){};// 获取商户详情
+  rpc DelMerchant(DelMerchantReq) returns(DelMerchantRes){};  // 删除商户
+  rpc GetMerchantList(GetMerchantListReq) returns(GetMerchantListRes){}; // 获取商户列表
+  rpc GetCategoryTree(GetCategoryTreeReq) returns(GetCategoryTreeRes){};// 分类树状图
+  rpc GetVisitList(GetVisitListReq) returns(GetVisitListRes){};// 添加跟进记录
+  rpc GetVisitDetail(GetVisitDetailReq) returns(GetVisitDetailRes){};// 添加跟进记录
+
+  // 员工端添加跟进记录
+  rpc MarketerEditVisit(MarketerEditVisitReq) returns(MarketerEditVisitRes){};// 添加跟进记录
+  // 小程序接口
+  rpc MiniGetMerchantList(MiniGetMerchantListReq) returns(MiniGetMerchantListRes){}; // 获取商户列表
+  rpc MiniGetCategoryList(MiniGetCategoryListReq) returns(MiniGetCategoryListRes){};
+}
+message GetVisitDetailReq {
+  string id = 1;
+}
+message GetVisitDetailRes {
+  MetaRes meta = 1;
+  VisitData data = 2;
+}
+
+message OperatorGetVisitListReq {
+  string merchantName = 1;//validate:"required=false",comment:"商户名称"
+  string yfMerchantNo = 2;//validate:"required=false",comment:"邮付商户号"
+  string userName = 3;//validate:"required=false",comment:"商户负责人名称"
+  string userMobile = 4;//validate:"required=false",comment:"商户负责人手机号码"
+  string tagId = 5;//validate:"required=false",comment:"标签"
+  string marketerName = 6;//validate:"required=false",comment:"员工姓名"
+  string marketerMobile = 7;//validate:"required=false",comment:"员工手机号码"
+  string orgId = 8;//validate:"required=false",comment:"员工所属组织"
+  string distance = 9;//validate:"required=false",comment:"距离（米），超过100米-gt100"
+  Operator operator = 10;//validate:"required=false",comment:"操作人"
+  string page = 11;//validate:"required=true",comment:"页码"
+  string pageSize = 12;//validate:"required=true",comment:"每页条数"
+  string startTime = 13;//validate:"required=false",comment:"开始时间"
+  string endTime = 14;//validate:"required=false",comment:"结束时间"
+  string visitStatus = 15;//validate:"required=false",comment:"达标状态：1-达标，2-未达标"
+}
+message OperatorGetVisitListRes {
+  MetaRes meta = 1;
+  OperatorGetVisitListData data = 2;
+}
+message OperatorGetVisitListData{
+  ExportInfo exportInfo = 1;
+  repeated VisitListData list = 2;
+  PageInfo pageInfo = 3;
+}
+message VisitListData {
+  string Id = 1;
+  string merchantName = 2;//validate:"required=true",comment:"商户名称"
+  string yfMerchantNo = 3;//validate:"required=true",comment:"邮付商户号"
+  string userName = 4;//validate:"required=true",comment:"商户负责人名称"
+  string userMobile = 5;//validate:"required=true",comment:"商户负责人手机号码"
+  repeated TagData tagData = 6;//validate:"required=true",comment:"标签"
+  string merchantAddress = 7;//validate:"required=true",comment:"商户地址"
+  string merchantOrgName = 8;//validate:"required=true",comment:"商户所属机构"
+  string marketerName = 9;//validate:"required=true",comment:"员工姓名"
+  string marketerMobile = 10;//validate:"required=true",comment:"员工手机号码"
+  string marketerOrgName = 11;//validate:"required=true",comment:"员工所属组织"
+  string visitAddress = 12;//validate:"required=true",comment:"跟进地址"
+  string distance = 13;//validate:"required=true",comment:"距离（米）"
+  string visitDescData = 14;//validate:"required=false",comment:"跟进描述"
+  repeated ImageData visitImaData = 15;//validate:"required=false",comment:"跟进图片"
+  string visitTime = 16;//validate:"required=true",comment:"跟进时间"
+  string merchantOrgId = 17;//validate:"required=true",comment:"商户所属机构id"
+  string visitStatus = 18;//validate:"required=false",comment:"达标状态：1-达标，2-未达标"
+
+}
+message GetVisitListReq{
+  string merchant_id = 1;
+  string page = 2;
+  string pageSize = 3;
+  string distance = 4;//validate:"required=false",comment:"距离（米）"
+  string marketerName = 5;//validate:"required=false",comment:"跟进人姓名"
+  string marketerMobile = 6;//validate:"required=false",comment:"跟进人手机号"
+}
+message GetVisitListRes{
+    MetaRes meta = 1;
+    GetVisitListData data = 2;
+}
+message GetVisitListData {
+    PageInfo pageInfo = 1;
+    repeated VisitData list = 2;
+}
+message MarketerEditVisitReq {
+  Marketer marketer = 1;
+  string merchantId = 2;//validate:"required=true",comment:"商户id"
+  string longitude = 3;//validate:"required=true",comment:"经度"
+  string latitude = 4;//validate:"required=true",comment:"纬度"
+  string address = 5;//validate:"required=true",comment:"地址"
+  repeated string detailImgIds = 7;//validate:"required=true",comment:"附件图id"
+  string descData = 8;//validate:"required=true",comment:"说明"
+  string perConsume = 9;//validate:"required=false",comment:"人均消费"
+  string feature = 10;//validate:"required=false",comment:"特色"
+  string score = 11;//validate:"required=false",comment:"评分"
+  string customerName = 12;//validate:"required=false",comment:"客服姓名"
+  string customerMobile = 13;//validate:"required=false",comment:"客服电话"
+  string merchantDescData = 14;//validate:"required=false",comment:"商户介绍"
+  repeated string merchantDetailImgIds = 15;//validate:"required=false",comment:"店内照片"
+  string thumbImgId = 16;//validate:"required=false",comment:"缩略图"
+  string provinceAdcode = 17;//validate:"required=true",comment:"省国标码"
+  string cityAdcode = 18;//validate:"required=true",comment:"市国标码"
+  string districtAdcode = 19;//validate:"required=true",comment:"区国标码"
+  string merchantAddress = 20;//validate:"required=true",comment:"商户详细地址"
+  string merchantLongitude = 21;//validate:"required=true",comment:"经度"
+  string merchantLatitude = 22;//validate:"required=true",comment:"纬度"
+  repeated string categoryIds = 23;//validate:"required=true",comment:"分类id"
+  string name = 24;//validate:"required=true",comment:"商户名称"
+  string id = 25;//validate:"required=true",comment:"跟进记录id"
+}
+
+message MarketerEditVisitRes {
+    MetaRes meta = 1;
+    VisitData data = 2;
+}
+
+
+message VisitData {
+  string id = 1;
+  string merchantId = 2;//validate:"required=true",comment:"商户id"
+  string longitude = 3;//validate:"required=true",comment:"经度"
+  string latitude = 4;//validate:"required=true",comment:"纬度"
+  string address = 5;//validate:"required=true",comment:"地址"
+  string distance = 6;//validate:"required=true",comment:"打卡距离(米)"
+  repeated ImageData detailImgData = 7;//validate:"required=true",comment:"详情图"
+  string descData = 8;//validate:"required=true",comment:"说明"
+  string createdAt = 10;//validate:"required=true",comment:"创建时间"
+  string visitMarketerName = 12;//validate:"required=true",comment:"跟进人姓名"
+  string visitMarketerMobile = 13;//validate:"required=true",comment:"跟进人手机号"
+}
+
+
+
+message MiniGetCategoryListReq {
+  string page = 1;
+  string pageSize = 2;
+  string channelId = 3;
+}
+message MiniGetCategoryListRes {
+  MetaRes meta = 1;
+  MiniGetCategoryListData data = 2;
+}
+message MiniGetCategoryListData{
+  PageInfo pageInfo = 1;
+  repeated CategoryData list = 2;
+}
+message MiniGetMerchantListReq {
+  string page = 1;
+  string pageSize = 2;
+  string channelId = 3;//validate:"required=false",comment:"网关注入"
+  string search = 4; //validate:"required=false",comment:"名称、地址模糊查询"
+  repeated string categoryId = 5; //validate:"required=false",comment:"分类id"
+  repeated string tagId = 6; //validate:"required=false",comment:"标签id"
+  string longitude = 7; //validate:"required=false",comment:"经度"
+  string latitude = 8; //validate:"required=false",comment:"纬度"
+  string provinceAdcode = 9; //validate:"required=false",comment:"省国标码"
+  string cityAdcode = 10; //validate:"required=false",comment:"市国标码"
+  string districtAdcode = 11; //validate:"required=false",comment:"区国标码"
+  string distance = 12;//validate:"required=false",comment:"距离"
+  string orgId = 13; //validate:"required=false",comment:"组织id"
+}
+
+message MiniGetMerchantListRes{
+  MetaRes meta = 1;
+  MiniGetMerchantListData data = 2;
+}
+message MiniGetMerchantListData{
+  PageInfo pageInfo = 1;
+  repeated MerchantData list = 4;
+}
+
+
+message GetMerchantListReq{
+  string page = 1;
+  string pageSize = 2;
+  string orgId = 3; //validate:"required=false",comment:"组织id"
+  string reviewStatus = 4; //validate:"required=false",comment:"审核状态：0-待审核，1-审核通过，2-审核不通过"
+  string isHide = 5; //validate:"required=false",comment:"是否隐藏：0-不隐藏,1-隐藏"
+  Operator operator = 6;  //validate:"required=false",comment:"操作人，网关注入"
+  string categoryId = 7; //validate:"required=false",comment:"分类id"
+  string tagId = 8; //validate:"required=false",comment:"标签id"
+  string search = 9; //validate:"required=false",comment:"搜索关键字"
+  string longitude = 10; //validate:"required=false",comment:"经度"
+  string latitude = 11; //validate:"required=false",comment:"纬度"
+  string provinceAdcode = 12; //validate:"required=false",comment:"省国标码"
+  string cityAdcode = 13; //validate:"required=false",comment:"市国标码"
+  string districtAdcode = 14; //validate:"required=false",comment:"区国标码"
+  string source = 15; //validate:"required=false",comment:"来源：2-员工"
+  string distance = 16; //validate:"required=false",comment:"距离（米）"
+  string searchStatus = 17; //validate:"required=false",comment:"搜索状态：0-审核不通过，1-已跟进，2-未跟进"
+  string userName = 18; //validate:"required=false",comment:"联系人"
+  string userMobile = 19; //validate:"required=false",comment:"联系人手机号"
+  string startedAt = 20; //validate:"required=false",comment:"创建开始时间"
+  string endedAt = 21; //validate:"required=false",comment:"创建结束时间"
+  string name = 22; //validate:"required=false",comment:"商户名"
+  string marketerTagId = 23; //validate:"required=false",comment:"员工标签"
+  string yfMerchantNo = 24; //validate:"required=false",comment:"商户号"
+}
+message GetMerchantListRes{
+  MetaRes meta = 1;
+  GetMerchantListData data = 2;
+}
+message GetMerchantListData{
+  PageInfo pageInfo = 1;
+  ImportInfo importInfo = 2;
+  ExportInfo exportInfo = 3;
+  repeated MerchantData list = 4;
+  ImportInfo importInfoByFile = 5;
+}
+message DelMerchantReq{
+  string id = 1;
+  Operator operator = 2;
+}
+message DelMerchantRes{
+  MetaRes meta = 1;
+}
+message GetMerchantDetailReq{
+  string id = 1;
+  Operator operator = 2;
+}
+message GetMerchantDetailRes{
+  MetaRes meta = 1;
+  MerchantData data = 2;
+}
+
+message EditMerchantRes{
+  MetaRes meta = 1;
+  MerchantData data = 2;
+}
+
+message EditMerchantReq{
+  string id = 1;
+  Operator operator = 2;//validate:"required=true",comment:"网关注入"
+  string name = 3;//validate:"required=true",comment:"商户名称"
+  string yfMerchantNo = 4;//validate:"required=false",comment:"邮付商户号"
+  string jlMerchantNo = 5;//validate:"required=false",comment:"简连商户号"
+  string userName = 6;//validate:"required=false",comment:"商户用户名"
+  string userMobile = 7;//validate:"required=true",comment:"商户手机号"
+  string orgId = 8;//validate:"required=true",comment:"机构id"
+  string provinceAdcode = 9;//validate:"required=true",comment:"省国标码"
+  string cityAdcode = 10;//validate:"required=true",comment:"市国标码"
+  string districtAdcode = 11;//validate:"required=true",comment:"区国标码"
+  string address = 12;//validate:"required=false",comment:"商户详细地址"
+  string longitude = 16;//validate:"required=false",comment:"经度"
+  string latitude = 17;//validate:"required=false",comment:"纬度"
+  repeated string categoryIds = 18;//validate:"required=false",comment:"分类id"
+  repeated string tagIds = 19;//validate:"required=false",comment:"标签id"
+  string thumbImgId = 20;//validate:"required=false",comment:"缩略图id"
+  repeated string detailImgIds = 21;//validate:"required=false",comment:"详情图id"
+  string descData = 22;//validate:"required=false",comment:"商户介绍"
+  string feature = 23;//validate:"required=false",comment:"特色"
+  string score = 24;//validate:"required=false",comment:"评分"
+  string perConsume = 25;//validate:"required=false",comment:"人均消费"
+  bool isOpenCA = 26;//validate:"required=false",comment:"是否开启咨询预约"
+  string consultationType = 27;//validate:"required=true",comment:"咨询预约类型:1-电话咨询,2-在线咨询,3-连接咨询"
+  string customerMobile = 28;//validate:"required=false",comment:"客服电话"
+  string sort = 29;//validate:"required=false",comment:"排序"
+  string reviewStatus = 30;//validate:"required=true",comment:"审核状态:0-待审核,1-审核通过,2-审核不通过"
+  bool isHide = 31;//validate:"required=false",comment:"是否隐藏"
+  string source = 32;//validate:"required=false",comment:"来源"
+  repeated string marketerTagIds = 33;//validate:"required=false",comment:"员工端标签id"
+}
+
+message MerchantData{
+  string id = 1;
+  string name = 3;//validate:"required=true",comment:"商户名称"
+  string yfMerchantNo = 4;//validate:"required=false",comment:"邮付商户号"
+  string jlMerchantNo = 5;//validate:"required=false",comment:"简连商户号"
+  string userName = 6;//validate:"required=false",comment:"商户用户名"
+  string userMobile = 7;//validate:"required=true",comment:"商户手机号"
+  OrgData orgData = 8;//validate:"required=true",comment:"机构"
+  AddressData provinceData = 9;//validate:"required=true",comment:"省"
+  AddressData cityData = 10;//validate:"required=true",comment:"市"
+  AddressData districtData = 11;//validate:"required=true",comment:"区"
+  string address = 12;//validate:"required=false",comment:"商户详细地址"
+  string longitude = 16;//validate:"required=false",comment:"经度"
+  string latitude = 17;//validate:"required=false",comment:"纬度"
+  repeated CategoryIdNameData categoryData = 18;//validate:"required=false",comment:"分类id"
+  repeated TagData tagData = 19;//validate:"required=false",comment:"标签id"
+  ImageData thumbImgData = 20;//validate:"required=false",comment:"缩略图"
+  repeated ImageData detailImgData = 21;//validate:"required=false",comment:"详情图"
+  string descData = 22;//validate:"required=false",comment:"商户介绍"
+  string feature = 23;//validate:"required=false",comment:"特色"
+  string score = 24;//validate:"required=false",comment:"评分"
+  string perConsume = 25;//validate:"required=false",comment:"人均消费"
+  bool isOpenCA = 26;//validate:"required=true",comment:"是否开启咨询预约"
+  string consultationType = 27;//validate:"required=true",comment:"咨询预约类型:1-电话咨询,2-在线咨询,3-连接咨询"
+  string customerMobile = 28;//validate:"required=false",comment:"客服电话"
+  string sort = 29;//validate:"required=false",comment:"排序"
+  string reviewStatus = 30;//validate:"required=true",comment:"审核状态:0-待审核,1-审核通过,2-审核不通过"
+  bool isHide = 31;//validate:"required=false",comment:"是否隐藏"
+  string distance = 32;//validate:"required=false",comment:"距离"
+  string createdAt = 33;//validate:"required=true",comment:"创建时间"
+  string customerName = 34;//validate:"required=false",comment:"客服联系人"
+  string source = 35;//validate:"required=false",comment:"来源:pc-PC端，maketer-员工端，api-接口，file-文件导入"
+  bool isVisit = 36;//validate:"required=false",comment:"是否已跟进"
+  repeated TagData marketerTagData = 37;//validate:"required=false",comment:"员工标签"
+  bool isMarketerVisit = 38;//validate:"required=false",comment:"员工是否已跟进"
+}
+message OrgData{
+  string id = 1;
+  string name = 2;
+  string orgNo = 3;
+}
+message TagData{
+  string id = 1;
+  string name = 3;//validate:"required=true",comment:"标签名称"
+}
+
+message AddressData{
+  string adcode = 1;//validate:"required=true",comment:"国标码"
+  string name = 2;//validate:"required=true",comment:"名称"
+}
+
+
+
+
+
+message GetCategoryTreeReq{
+  string miniOpenStatus = 1;//validate:"required=false",comment:"网关注入"
+  Operator operator = 2;//validate:"required=true",comment:"管理员信息，网关注入"
+}
+
+message GetCategoryTreeRes{
+  MetaRes meta = 1;
+  repeated CategoryTreeData data = 2;
+}
+
+message GetCategoryListReq{
+  string page = 1;
+  string pageSize = 2;
+  Operator operator = 3;//validate:"required=true",comment:"管理员信息，网关注入"
+}
+message GetCategoryListRes{
+  MetaRes meta = 1;
+  GetCategoryListData data = 4;
+}
+message GetCategoryListData{
+  PageInfo pageInfo = 1;
+  repeated CategoryData list = 2;
+}
+message DelCategoryReq{
+  string id = 1;
+  Operator operator = 2;//validate:"required=true",comment:"管理员信息，网关注入"
+}
+message DelCategoryRes{
+  MetaRes meta = 1;
+}
+message GetCategoryDetailReq{
+  string id = 1;
+  Operator operator = 2;//validate:"required=true",comment:"管理员信息，网关注入"
+}
+message GetCategoryDetailRes{
+  MetaRes meta = 1;
+  CategoryData data = 2;
+}
+
+message EditCategoryReq{
+  string id = 1;
+  Operator operator = 2;//validate:"required=true",comment:"管理员信息，网关注入"
+  string pid = 3;//validate:"required=true",comment:"上级分类id"
+  string name = 4;//validate:"required=true",comment:"分类名称"
+  string iconImgId = 5;//validate:"required=true",comment:"分类图片"
+  string sort = 6;//validate:"required=true",comment:"排序"
+  string status = 7;//validate:"required=true",comment:"状态：1-显示，2-不显示"
+  string miniOpenStatus = 8;//validate:"required=true",comment:"小程序显示状态：1-显示，2-不显示"
+}
+message EditCategoryRes{
+  MetaRes meta = 1;
+  CategoryData data = 2;
+}
+message CategoryData{
+  string id = 1;
+  string channelId = 2;//validate:"required=true",comment:"渠道id"
+  string name = 4;//validate:"required=true",comment:"分类名称"
+  ImageData iconImgData = 5;//validate:"required=true",comment:"分类图片"
+  string sort = 6;//validate:"required=true",comment:"排序"
+  string status = 7;//validate:"required=true",comment:"状态：1-显示，2-不显示"
+  string miniOpenStatus = 8;//validate:"required=true",comment:"小程序显示状态：1-显示，2-不显示"
+  CategoryIdNameData pData = 9;//validate:"required=false",comment:"上级分类"
+}
+
+//分类树响应内容
+message CategoryTreeData{
+  //分类id
+  string id = 1;
+  //分类名称
+  string name = 2;
+  //下级分类
+  repeated CategoryTreeData children = 3;
+}
+//分类简写信息
+message CategoryIdNameData{
+  //分类id
+  string id = 1;
+  //分类名称
+  string name = 2;
+}
+
+
+
+message Operator{
+  bool operatorIsSuper = 1;
+  string operatorUserId = 2;
+  string operatorMobile = 3;
+  string operatorName = 4;
+  string operatorOrgId = 5;
+  string channelId = 6;
+}
+message Marketer{
+  bool isSuper = 1;
+  string userId = 2;
+  string name = 3;
+  string mobile = 4;
+  string orgId = 5;
+  string channelId = 6;
+}
+message WxUser{
+  string wxUnionId = 1;
+  string wxMiniAppId = 2;
+  string wxMiniOpenId = 3;
+  string wxNickname = 4;
+  string wxAvatar = 5;
+  string wxMobile = 6;
+  string realName = 7;
+}
+message MemberUser{
+  string userMobile = 1;
+  string userName = 2;
+  string userIdentity = 3;
+  string userAddress = 4;
+  string userProvince = 5;
+  string userCity = 6;
+  string userDistrict = 7;
+}
+message PageInfo{
+  string page = 1;
+  string pageSize = 2;
+  string totalPage = 3;
+  string total = 4;
+}
+message ImageData{
+  string id = 1;
+  string name = 2;
+  string url = 3;
+}
+message PingReq{
+}
+
+message PingRes{
+  MetaRes meta = 1;
+}
+
+message MetaRes{
+  string requestId = 1;
+  int32 code = 2;
+  string msg = 3;
+}
+
+
+//标签新建
+message TagsCreateReq{
+  string id = 1;
+  string name = 2;
+  string detail = 3;
+  string sort = 4;
+  bool isShow = 5;
+  string channelID = 6;
+  File listImage = 7;
+  string tagType = 8;
+}
+// 文件
+message File{
+  string id = 1;
+  string url = 2;
+}
+message TagsEditResp{
+  MetaRes meta = 1;
+  TagsDetail data = 2;
+}
+
+message TagsDetail{
+  string id = 1;
+  string name = 2;
+  string detail = 3;
+  string sort = 4;
+  bool isShow = 5;
+  string channelID = 6;
+  string createdAt = 7;
+  ImageAllData listImage = 8;
+  string updatedAt =9;
+  string tagType =10;
+}
+
+message TagsListReq{
+  string name = 1;
+  string page = 2;
+  string pageSize = 3;
+  string channelID = 4;
+  string tagType =5;
+}
+//标签列表
+message TagsListResp{
+  MetaRes meta = 1;
+  TagsListData data = 2;
+}
+message TagsListData{
+  repeated TagsDetail list = 1;
+  PageInfo pageInfo = 2;
+}
+
+//公共参数
+message ImageAllData{
+  string id = 1;
+  string url = 2;
+}
+message TagDeleteReq{
+  bool isSuper = 1;
+  string channelId = 2;
+  string id = 3;
+}
+message TagDeleteRes{
+  MetaRes meta = 1;
+}
+message StaffInfo{
+  string id = 1;
+  string orgId = 2;
+  bool isSuper = 3;
+  string channelId = 4;
+  bool isBackClient = 5;
+}
+message ExportInfo {
+  string type = 1;
+  string searchData = 2;
+  string additionalData = 3;
+}
+message ImportInfo{
+  string type = 1;
+  string additionalData = 2;
+}
+
