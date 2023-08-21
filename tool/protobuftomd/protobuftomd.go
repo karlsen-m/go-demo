@@ -156,7 +156,7 @@ func ProtoBufToMd(fileName string, serviceName string) {
 
 ## 前端method: %s%s
 
-## 请求方式: **POST,GET**
+## 请求方式: **%s**
 
 ### 请求参数:
 
@@ -174,7 +174,7 @@ func ProtoBufToMd(fileName string, serviceName string) {
 %s
 %s
 %s
-`, md, v["serviceName"], protoName, v["serviceName"], reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
+`, md, v["serviceName"], protoName, v["serviceName"], GetMethod(v["serviceName"]), reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
 			}
 		}
 	} else {
@@ -213,7 +213,7 @@ func ProtoBufToMd(fileName string, serviceName string) {
 
 ## 前端method: %s%s
 
-## 请求方式: **POST,GET**
+## 请求方式: **%s**
 
 ### 请求参数:
 
@@ -231,7 +231,7 @@ func ProtoBufToMd(fileName string, serviceName string) {
 %s
 %s
 %s
-`, md, v["serviceName"], protoName, v["serviceName"], reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
+`, md, v["serviceName"], protoName, v["serviceName"], GetMethod(v["serviceName"]), reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
 				break
 			}
 		}
@@ -333,37 +333,47 @@ func getMessageJson(text []string, messageDataMap map[string][]string, messageNa
 								}
 							}
 						} else {
-							textC, isOk = messageDataMap[fieldCommen[1]]
-							if isOk {
-								childJson := getMessageJson(textC, messageDataMap, fieldCommen[1])
-								if childJson == "" {
-									if json == "" {
-										json = fmt.Sprintf(`{
-"%s":[]`, fieldCommen[2])
-									} else {
-										json = fmt.Sprintf(`%s,
-"%s":[]`, json, fieldCommen[2])
-									}
-								} else {
-									if json == "" {
-										json = fmt.Sprintf(`{
-"%s":[
-	%s
-]`, fieldCommen[2], childJson)
-									} else {
-										json = fmt.Sprintf(`%s,
-"%s":[
-	%s
-]`, json, fieldCommen[2], childJson)
-									}
-								}
-							} else {
+							if messageName == fieldCommen[1] {
 								if json == "" {
 									json = fmt.Sprintf(`{
 "%s":[]`, fieldCommen[2])
 								} else {
 									json = fmt.Sprintf(`%s,
 "%s":[]`, json, fieldCommen[2])
+								}
+							} else {
+								textC, isOk = messageDataMap[fieldCommen[1]]
+								if isOk {
+									childJson := getMessageJson(textC, messageDataMap, fieldCommen[1])
+									if childJson == "" {
+										if json == "" {
+											json = fmt.Sprintf(`{
+"%s":[]`, fieldCommen[2])
+										} else {
+											json = fmt.Sprintf(`%s,
+"%s":[]`, json, fieldCommen[2])
+										}
+									} else {
+										if json == "" {
+											json = fmt.Sprintf(`{
+"%s":[
+	%s
+]`, fieldCommen[2], childJson)
+										} else {
+											json = fmt.Sprintf(`%s,
+"%s":[
+	%s
+]`, json, fieldCommen[2], childJson)
+										}
+									}
+								} else {
+									if json == "" {
+										json = fmt.Sprintf(`{
+"%s":[]`, fieldCommen[2])
+									} else {
+										json = fmt.Sprintf(`%s,
+"%s":[]`, json, fieldCommen[2])
+									}
 								}
 							}
 						}
@@ -420,28 +430,7 @@ func getMessageJson(text []string, messageDataMap map[string][]string, messageNa
 								}
 							}
 						} else {
-							textC, isOk = messageDataMap[fieldCommen[0]]
-							if isOk {
-								childJson := getMessageJson(textC, messageDataMap, fieldCommen[0])
-								if childJson != "" {
-									if json == "" {
-										json = fmt.Sprintf(`{
-"%s":%s`, fieldCommen[1], childJson)
-									} else {
-										json = fmt.Sprintf(`%s,
-"%s":%s`, json, fieldCommen[1], childJson)
-									}
-								} else {
-									if json == "" {
-										json = fmt.Sprintf(`{
-"%s":{}`, fieldCommen[1])
-									} else {
-										json = fmt.Sprintf(`%s,
-"%s":{}`, json, fieldCommen[1])
-									}
-								}
-
-							} else {
+							if fieldCommen[0] == messageName {
 								if json == "" {
 									json = fmt.Sprintf(`{
 "%s":{}`, fieldCommen[1])
@@ -449,8 +438,38 @@ func getMessageJson(text []string, messageDataMap map[string][]string, messageNa
 									json = fmt.Sprintf(`%s,
 "%s":{}`, json, fieldCommen[1])
 								}
-							}
+							} else {
+								textC, isOk = messageDataMap[fieldCommen[0]]
+								if isOk {
+									childJson := getMessageJson(textC, messageDataMap, fieldCommen[0])
+									if childJson != "" {
+										if json == "" {
+											json = fmt.Sprintf(`{
+"%s":%s`, fieldCommen[1], childJson)
+										} else {
+											json = fmt.Sprintf(`%s,
+"%s":%s`, json, fieldCommen[1], childJson)
+										}
+									} else {
+										if json == "" {
+											json = fmt.Sprintf(`{
+"%s":{}`, fieldCommen[1])
+										} else {
+											json = fmt.Sprintf(`%s,
+"%s":{}`, json, fieldCommen[1])
+										}
+									}
 
+								} else {
+									if json == "" {
+										json = fmt.Sprintf(`{
+"%s":{}`, fieldCommen[1])
+									} else {
+										json = fmt.Sprintf(`%s,
+"%s":{}`, json, fieldCommen[1])
+									}
+								}
+							}
 						}
 
 					} else {
@@ -521,11 +540,16 @@ func getMessageMarkdown(text []string, messageDataMap map[string][]string, messa
 							child[messageName+"_"+fieldCommen[1]] = getMessageMarkdown(textC, messageDataMap, messageName+"_"+fieldCommen[1])
 							fieldMds = fmt.Sprintf("|%s|[][%s](#%s)|", fieldCommen[2], messageName+"_"+fieldCommen[1], messageName+"_"+fieldCommen[1])
 						} else {
-							textC, isOk = messageDataMap[fieldCommen[1]]
-							if isOk {
-								child[fieldCommen[1]] = getMessageMarkdown(textC, messageDataMap, fieldCommen[1])
+							if messageName == fieldCommen[1] {
+								//自己引用自己
+								fieldMds = fmt.Sprintf("|%s|[][%s](#%s)|", fieldCommen[2], fieldCommen[1], fieldCommen[1])
+							} else {
+								textC, isOk = messageDataMap[fieldCommen[1]]
+								if isOk {
+									child[fieldCommen[1]] = getMessageMarkdown(textC, messageDataMap, fieldCommen[1])
+								}
+								fieldMds = fmt.Sprintf("|%s|[][%s](#%s)|", fieldCommen[2], fieldCommen[1], fieldCommen[1])
 							}
-							fieldMds = fmt.Sprintf("|%s|[][%s](#%s)|", fieldCommen[2], fieldCommen[1], fieldCommen[1])
 						}
 					} else {
 						fieldMds = fmt.Sprintf("|%s|[]%s|", fieldCommen[2], fieldCommen[1])
@@ -539,13 +563,16 @@ func getMessageMarkdown(text []string, messageDataMap map[string][]string, messa
 							child[messageName+"_"+fieldCommen[0]] = getMessageMarkdown(textC, messageDataMap, messageName+"_"+fieldCommen[0])
 							fieldMds = fmt.Sprintf("|%s|[%s](#%s)|", fieldCommen[1], messageName+"_"+fieldCommen[0], messageName+"_"+fieldCommen[0])
 						} else {
-							textC, isOk = messageDataMap[fieldCommen[0]]
-							if isOk {
-								child[fieldCommen[0]] = getMessageMarkdown(textC, messageDataMap, fieldCommen[0])
+							if messageName == fieldCommen[0] {
+								fieldMds = fmt.Sprintf("|%s|[%s](#%s)|", fieldCommen[1], fieldCommen[0], fieldCommen[0])
+							} else {
+								textC, isOk = messageDataMap[fieldCommen[0]]
+								if isOk {
+									child[fieldCommen[0]] = getMessageMarkdown(textC, messageDataMap, fieldCommen[0])
+								}
+								fieldMds = fmt.Sprintf("|%s|[%s](#%s)|", fieldCommen[1], fieldCommen[0], fieldCommen[0])
 							}
-							fieldMds = fmt.Sprintf("|%s|[%s](#%s)|", fieldCommen[1], fieldCommen[0], fieldCommen[0])
 						}
-
 					} else {
 						fieldMds = fmt.Sprintf("|%s|%s|", fieldCommen[1], fieldCommen[0])
 					}
@@ -777,4 +804,12 @@ func InArrayWithString(val string, arr []string) bool {
 		}
 	}
 	return false
+}
+
+func GetMethod(serviceName string) string {
+	if strings.Contains(serviceName, "Get") || strings.Contains(serviceName, "List") || strings.Contains(serviceName, "Detail") {
+		return "GET"
+	} else {
+		return "POST"
+	}
 }

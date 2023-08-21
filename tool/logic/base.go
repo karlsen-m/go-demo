@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -14,7 +15,19 @@ const (
 	List   = "list"
 )
 
-func CreateLogic(pkgName, modelName, resDataName, logicType, apiName string) {
+func CreateLogicByModel(pkgName, modelName string) {
+	//rpc EditTag(EditTagReq) returns(EditTagRes){};
+	//    rpc GetTagDetail(GetTagReq) returns(GetTagRes){};
+	//    rpc DelTag(DelTagReq) returns(DelTagRes){};
+	//    rpc GetTagList(GetTagReq) returns(GetTagRes){};
+	modelNameCapital := strings.Title(modelName)
+	CreateLogic(pkgName, modelName, Edit, "Edit"+modelNameCapital)
+	CreateLogic(pkgName, modelName, Detail, "Get"+modelNameCapital+"Detail")
+	CreateLogic(pkgName, modelName, Delete, "Del"+modelNameCapital)
+	CreateLogic(pkgName, modelName, List, "Get"+modelNameCapital+"List")
+}
+
+func CreateLogic(pkgName, modelName, logicType, apiName string) {
 
 	importStr := `
 	"context"
@@ -28,18 +41,18 @@ func CreateLogic(pkgName, modelName, resDataName, logicType, apiName string) {
 	str := ""
 	switch logicType {
 	case Edit:
-		str = createEditLogic(pkgName, apiName, modelName, resDataName)
-		importStr += `"utils/modelbase"`
+		str = createEditLogic(pkgName, apiName, modelName)
+		//importStr += `"utils/modelbase"`
 		break
 	case Detail:
-		str = createDetailLogic(pkgName, apiName, modelName, resDataName)
+		str = createDetailLogic(pkgName, apiName, modelName)
 		break
 	case Delete:
-		str = createDeleteLogic(pkgName, apiName, modelName, resDataName)
+		str = createDeleteLogic(pkgName, apiName, modelName)
 		break
 	case List:
-		str = createListLogic(pkgName, apiName, modelName, resDataName)
-		importStr += `"math"`
+		str = createListLogic(pkgName, apiName, modelName)
+		//importStr += `"math"`
 
 		break
 	default:
@@ -64,4 +77,17 @@ func CreateLogic(pkgName, modelName, resDataName, logicType, apiName string) {
 	}
 	fmt.Println("create to logic success")
 
+}
+
+func lowerFirstLetter(s string) string {
+	if s == "" {
+		return ""
+	}
+
+	runes := []rune(s)
+	if unicode.IsUpper(runes[0]) {
+		runes[0] = unicode.ToLower(runes[0])
+	}
+
+	return string(runes)
 }

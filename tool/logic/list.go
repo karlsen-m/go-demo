@@ -1,6 +1,7 @@
 package logic
 
-func createListLogic(pkgName, apiName, modelName, resDataName string) string {
+func createListLogic(pkgName, apiName, modelName string) string {
+	modelNameBak := lowerFirstLetter(modelName)
 	str := `
 	mate := &` + pkgName + `.MetaRes{
 		RequestId: tracing.GetRequestId(l.ctx),
@@ -10,54 +11,54 @@ func createListLogic(pkgName, apiName, modelName, resDataName string) string {
 	resp := &` + pkgName + `.` + apiName + `Res{
 		Meta: mate,
 	}
-	resDataReturn := &` + pkgName + `.` + apiName + `Data{}
-	channelId := in.GetChannelId()
+	data := &` + pkgName + `.` + apiName + `Data{}
 	page := cast.ToInt(in.GetPage())
 	pageSize := cast.ToInt(in.GetPageSize())
-	if page < 1 {
+	if page <= 0 {
 		page = 1
 	}
-	if pageSize < 1 {
+	if pageSize <= 0 {
 		pageSize = 10
 	}
 	search := make(map[string]interface{})
-	search["channelId"] = channelId
-	modelClient := models.NewModelClient("` + modelName + `")
-	total, err := modelClient.GetTotal(l.ctx, search)
+	search["channelId"] = in.GetChannelId()
+	` + modelNameBak + ` := models.` + modelName + `{}
+	util, err := ` + modelNameBak + `.NewUtil()
 	if err != nil {
-		mate.Code = ApiCode.DB_ERROR
-		mate.Msg = err.Error()
+		meta.Code = ApiCode.DB_ERROR
+		meta.Msg = err.Error()
 		return resp, nil
 	}
-	pageInfo := &` + pkgName + `.PageInfo{
-		PageSize:  cast.ToString(pageSize),
-		Page:      cast.ToString(page),
+	total, err := util.GetTotal(l.ctx, &` + modelNameBak + `, search)
+	if err != nil {
+		meta.Code = ApiCode.DB_ERROR
+		meta.Msg = err.Error()
+		return resp, nil
+	}
+	data.PageInfo = &` + pkgName + `.PageInfo{
 		Total:     cast.ToString(total),
-		TotalPage: cast.ToString(math.Ceil(float64(total) / float64(pageSize))),
+		Page:      cast.ToString(page),
+		PageSize:  cast.ToString(pageSize),
+		TotalPage: util.GetTotalPage(total, pageSize),
 	}
-	resDataReturn.PageInfo = pageInfo
+	resp.Data = data
 	if total <= 0 {
-		resp.Data = resDataReturn
 		return resp, nil
 	}
-	modelListI, err := modelClient.GetList(l.ctx, search, page, pageSize)
+	list := make([]models.` + modelName + `, 0)
+	err = util.GetList(l.ctx, &` + modelNameBak + `, search, &list, page, pageSize, "id desc")
 	if err != nil {
-		mate.Code = ApiCode.DB_ERROR
-		mate.Msg = err.Error()
+		meta.Code = ApiCode.DB_ERROR
+		meta.Msg = err.Error()
 		return resp, nil
 	}
-	modelList := modelListI.([]models.` + modelName + `)
-	if len(modelList) <= 0 {
-		resp.Data = resDataReturn
+	if len(list) <= 0 {
 		return resp, nil
 	}
-	for _, v := range modelList {
-		returnData := modelClient.ReturnData(l.ctx, v, nil)
-		if returnData != nil {
-			resDataReturn.List = append(resDataReturn.List, returnData.(*` + pkgName + `.` + resDataName + `))
-		}
+	for _, v := range list {
+		data.List = append(data.List, v.ReturnData(l.ctx))
 	}
-	resp.Data = resDataReturn
+	resp.Data = data
 	return resp, nil
 `
 	return str

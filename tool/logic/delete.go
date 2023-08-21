@@ -1,6 +1,8 @@
 package logic
 
-func createDeleteLogic(pkgName, apiName, modelName, resDataName string) string {
+func createDeleteLogic(pkgName, apiName, modelName string) string {
+	modelNameBak := lowerFirstLetter(modelName)
+
 	str := `
 	mate := &` + pkgName + `.MetaRes{
 		RequestId: tracing.GetRequestId(l.ctx),
@@ -11,28 +13,34 @@ func createDeleteLogic(pkgName, apiName, modelName, resDataName string) string {
 		Meta: mate,
 	}
 	id := cast.ToUint64(in.GetId())
-	modelClient := models.NewModelClient("` + modelName + `")
-	modelI, err := modelClient.GetById(l.ctx, id)
+	if id <= 0 {
+		meta.Code = ApiCode.REQ_DATA_ERROR
+		meta.Msg = "id不能为空"
+		return resp, nil
+	}
+	` + modelNameBak + ` := models.` + modelName + `{}
+	util, err := ` + modelNameBak + `.NewUtil()
 	if err != nil {
-		mate.Code = ApiCode.DB_ERROR
-		mate.Msg = err.Error()
+		meta.Code = ApiCode.DB_ERROR
+		meta.Msg = err.Error()
 		return resp, nil
 	}
-	if modelI == nil {
-		mate.Code = ApiCode.REQ_DATA_ERROR
-		mate.Msg = "数据不存在"
-		return resp, nil
-	}
-	model := modelI.(models.` + modelName + `)
-	if model.Id <= 0 {
-		mate.Code = ApiCode.REQ_DATA_ERROR
-		mate.Msg = "数据不存在"
-		return resp, nil
-	}
-	err = model.Delete(l.ctx)
+	err = util.FirstById(l.ctx, &` + modelNameBak + `, cast.ToUint64(in.GetId()))
 	if err != nil {
-		mate.Code = ApiCode.DB_ERROR
-		mate.Msg = err.Error()
+		meta.Code = ApiCode.DB_ERROR
+		meta.Msg = err.Error()
+		return resp, nil
+	}
+	if !` + modelNameBak + `.IsExist() {
+		meta.Code = ApiCode.REQ_DATA_ERROR
+		meta.Msg = "数据不存在"
+		return resp, nil
+	}
+	` + modelNameBak + `.DeletedAt = helpers.GetNowTime()
+	err = util.SaveById(l.ctx, &` + modelNameBak + `, ` + modelNameBak + `.Id)
+	if err != nil {
+		meta.Code = ApiCode.DB_ERROR
+		meta.Msg = err.Error()
 		return resp, nil
 	}
 	return resp, nil

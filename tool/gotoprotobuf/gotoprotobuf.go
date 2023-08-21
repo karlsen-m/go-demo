@@ -174,7 +174,7 @@ func ListBuf(serviceName string) {
 	fmt.Println(fmt.Sprintf("    string pageSize = 2;"))
 	fmt.Println(fmt.Sprintf(`    Operator operator = 3;  //validate:"required=false",comment:"操作人，网关注入"`))
 	fmt.Println(fmt.Sprintf("}"))
-	fmt.Println(fmt.Sprintf("message Get%sListReq {", serviceName))
+	fmt.Println(fmt.Sprintf("message Get%sListRes {", serviceName))
 	fmt.Println(fmt.Sprintf("    MetaRes meta = 1;"))
 	fmt.Println(fmt.Sprintf("    Get%sListData data = 2;", serviceName))
 	fmt.Println(fmt.Sprintf("}"))

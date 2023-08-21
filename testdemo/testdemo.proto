@@ -1,0 +1,121 @@
+syntax = "proto3";
+package testdemo;
+option go_package="./testdemo";
+service Testdemo {
+    rpc Ping(PingReq) returns(PingRes){};
+
+    rpc EditTag(EditTagReq) returns(EditTagRes){};
+    rpc GetTagDetail(GetTagReq) returns(GetTagRes){};
+    rpc DelTag(DelTagReq) returns(DelTagRes){};
+    rpc GetTagList(GetTagReq) returns(GetTagRes){};
+
+}
+
+
+message GetTagReq {
+  string id = 1;
+}
+message GetTagRes {
+  MetaRes meta = 1;
+  TagData data = 2;
+}
+message DelTagReq {
+  string id = 1;
+  Operator operator = 2;  //validate:"required=false",comment:"操作人，网关注入"
+}
+message DelTagRes {
+  MetaRes meta = 1;
+}
+message GetTagListReq {
+  string page = 1;
+  string pageSize = 2;
+  Operator operator = 3;  //validate:"required=false",comment:"操作人，网关注入"
+}
+message GetTagListRes {
+  MetaRes meta = 1;
+  GetTagListData data = 2;
+}
+message GetTagListData {
+  PageInfo pageInfo = 1;
+  repeated TagData list = 4;
+}
+message EditTagReq {
+  Operator operator = 1;//validate:"required=false",comment:"操作人，网关注入"
+  string id = 2;//validate:"required=true"
+  string channelId = 3;//validate:"required=true",comment:"渠道id"
+  string name = 4;//validate:"required=true",comment:"标签名称"
+  string deletedAt = 5;//validate:"required=true",comment:"删除时间"
+  string createdAt = 6;//validate:"required=true",comment:"创建时间"
+  string updatedAt = 7;//validate:"required=true",comment:"更新时间"
+}
+message EditTagRes {
+  MetaRes meta = 1;
+  TagData data = 2;
+}
+message TagData {
+  string id = 1;
+  string channelId = 2;//comment:"渠道id"
+  string name = 3;//comment:"标签名称"
+  string deletedAt = 4;//comment:"删除时间"
+  string createdAt = 5;//comment:"创建时间"
+  string updatedAt = 6;//comment:"更新时间"
+}
+
+message Operator {
+  bool isSuper = 1;
+  string userId = 2;
+  string mobile = 3;
+  string name = 4;
+  string orgId = 5;
+  string channelId = 6;
+}
+message Marketer {
+  bool isSuper = 1;
+  string userId = 2;
+  string name = 3;
+  string mobile = 4;
+  string orgId = 5;
+  string channelId = 6;
+}
+message WxUser {
+  string wxUnionId = 1;
+  string wxMiniAppId = 2;
+  string wxMiniOpenId = 3;
+  string wxNickname = 4;
+  string wxAvatar = 5;
+  string wxMobile = 6;
+  string realName = 7;
+}
+message MemberUser{
+  string userMobile = 1;
+  string userName = 2;
+  string userIdentity = 3;
+  string userAddress = 4;
+  string userProvince = 5;
+  string userCity = 6;
+  string userDistrict = 7;
+}
+message PageInfo {
+  string page = 1;
+  string pageSize = 2;
+  string totalPage = 3;
+  string total = 4;
+}
+message ImageData {
+  string id = 1;
+  string name = 2;
+  string url = 3;
+}
+message PingReq {
+}
+
+message PingRes {
+    MetaRes meta = 1;
+}
+
+message MetaRes {
+    string requestId = 1;
+    int32 code = 2;
+    string msg = 3;
+}
+

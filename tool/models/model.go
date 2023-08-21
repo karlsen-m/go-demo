@@ -38,14 +38,6 @@ func init() {
 	_ = db.GetDB().Set("gorm:table_options", otherTableOptions+" comment '服务表-使用中'").AutoMigrate(&Service{})
 }
 
-func NewModelClient(modelName string) modelbase.ModelClient {
-	switch modelName {
-	case "modelName":
-		return NewModel()
-	}
-	return nil
-}
-
 type Marketer struct {
 	MarketerIsSuper bool   ` + "`" + `json:"marketerIsSuper" gorm:"not null;comment:员工是否为后台超级管理员"` + "`" + `
 	MarketerId      string ` + "`" + `json:"marketerId" gorm:"index;not null;size:50;comment:员工id"` + "`" + `
@@ -62,7 +54,7 @@ type Operator struct {
 	OperatorOrgId   string    ` + "`" + `json:"operatorOrgId" gorm:"not null;size:50;comment:操作员所属组织架构id"` + "`" + `
 	OperatedAt      time.Time ` + "`" + `json:"operatedAt" gorm:"not null;comment:操作时间"` + "`" + `
 }
-
+	
 
 
 func GenerateId() uint64 {
@@ -71,22 +63,20 @@ func GenerateId() uint64 {
 `
 	var modelTemplate = `
 package models
-	
-	
+
 import (
 	"context"
-	"encoding/json"
-	"errors"
+	"fmt"
 	"github.com/spf13/cast"
+	"go-common/tools/db"
 	"go-common/tools/helpers"
-	"utils/redis"
+	"go-common/tools/model"
 	"gorm.io/gorm"
-	"utils/db"
 	"time"
 )
 	
 const (
-	` + modelNameCapital + `Key             = "serviceName_` + modelName + `:id:"
+	` + modelNameCapital + `Prefix             = "serviceName_` + modelName + `:id:"
 )
 	
 type ` + modelNameCapital + ` struct {
@@ -97,28 +87,16 @@ type ` + modelNameCapital + ` struct {
 	UpdatedAt time.Time ` + "`" + `json:"updatedAt" gorm:"comment:更新时间"` + "`" + `
 }
 
-func New` + modelNameCapital + `() *` + modelNameCapital + ` {
-	return &` + modelNameCapital + `{}
+func (m *` + modelNameCapital + `) NewUtil() (util *model.Util, err error) {
+	util, err = model.NewUtil(
+		helpers.GetConfigToString("driver.mysql", "DEFAULT_MYSQL_DRIVER"),
+		helpers.GetConfigToString("driver.redis", "DEFAULT_REDIS_DRIVER"),
+		` + modelNameCapital + `Prefix,
+		30*time.Minute,
+	)
+	return
 }
-	
-func (m *` + modelNameCapital + `) Save(ctx context.Context) error {
-	session := db.GetDB().WithContext(ctx)
-	err := session.Save(m).Error
-	if err != nil {
-		return err
-	}
-	if m.IsExist() {
-		return m.SaveR(ctx)
-	}
-	return nil
-}
-func (m *` + modelNameCapital + `) SaveR(ctx context.Context) error {
-	client := redis.GetClient()
-	key := ` + modelNameCapital + `Key + cast.ToString(m.Id)
-	mByte, _ := json.Marshal(m)
-	return client.Set(ctx, key, string(mByte), 1*24*time.Hour).Err()
-}
-	
+
 func (m *` + modelNameCapital + `) IsExist() bool {
 	if m == nil || m.Id == 0 || !m.DeletedAt.IsZero() {
 		return false
@@ -126,113 +104,22 @@ func (m *` + modelNameCapital + `) IsExist() bool {
 	return true
 }
 
-func (m *` + modelNameCapital + `) DeleteR(ctx context.Context) error {
-	client := redis.GetClient()
-	key := ` + modelNameCapital + `Key + cast.ToString(m.Id)
-	return client.Del(ctx, key).Err()
-}
-func (m *` + modelNameCapital + `) Delete(ctx context.Context) (err error) {
-	m.DeletedAt = helpers.GetNowTime()
-	err = m.Save(ctx)
-	if err != nil {
-		return
-	}
-	err = m.DeleteR(ctx)
-	if err != nil {
-		return
-	}
-	return
-}
-
-func (m *` + modelNameCapital + `) GetById(ctx context.Context, id uint64) (interface{}, error) {
-	` + modelName + `, err := m.GetByIdWithRedis(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	if ` + modelName + `.Id != 0 {
-		return ` + modelName + `, nil
-	}
-	` + modelName + `, err = m.GetByIdWithDb(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	if ` + modelName + `.Id != 0 {
-		err = ` + modelName + `.SaveR(ctx)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return ` + modelName + `, nil
-}
-	
-func (m *` + modelNameCapital + `) GetByIdWithRedis(ctx context.Context, id uint64) (` + modelName + ` ` + modelNameCapital + `, err error) {
-	client := redis.GetClient()
-	key := ` + modelNameCapital + `Key + cast.ToString(id)
-	isOkKey := client.Exists(ctx, key).Val()
-	if isOkKey == 0 {
-		return ` + modelName + `, nil
-	}
-	` + modelName + `Byte, err := client.Get(ctx, key).Result()
-	if err != nil {
-		return ` + modelName + `, err
-	}
-	err = json.Unmarshal([]byte(` + modelName + `Byte), &` + modelName + `)
-	if err != nil {
-		return ` + modelName + `, err
-	}
-	return ` + modelName + `, nil
-}
-	
-func (m *` + modelNameCapital + `) GetByIdWithDb(ctx context.Context, id uint64) (` + modelName + ` ` + modelNameCapital + `, err error) {
-	session := db.GetDB().WithContext(ctx)
-	err = session.Where("id = ?", id).Where("deleted_at = ?", time.Time{}).First(&` + modelName + `).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		err = nil
-	}
-	return
-}
-
-func (m *` + modelNameCapital + `) GetListSearch(ctx context.Context, search map[string]interface{}) *gorm.DB {
-	session := db.GetDB().WithContext(ctx).Model(&` + modelNameCapital + `{}).Where("deleted_at = ?", time.Time{})
+func (m *` + modelNameCapital + `) GetSession(ctx context.Context, search map[string]interface{}) *gorm.DB {
+	session := db.GetClient(helpers.GetConfigToString("driver.mysql", "DEFAULT_MYSQL_DRIVER")).GetDBSession(ctx).Model(&` + modelNameCapital + `{})
+	session = session.Where("deleted_at = ?", time.Time{})
 	if search != nil {
 		for i, v := range search {
 			switch i {
-				case "channelId":
-					if v.(string) != "" {
-						session = session.Where("channel_id = ?", v.(string))
-					}
+			case "channelId":
+				if v.(string) != "" {
+					session = session.Where("channel_id = ?", v.(string))
+				}
 				break
 			}
 		}
 	}
 	return session
 }
-
-//总数
-func (m *` + modelNameCapital + `)GetTotal(ctx context.Context, search map[string]interface{}) (total int64, err error) {
-	session := m.GetListSearch(ctx, search)
-	err = session.Count(&total).Error
-	return
-}
-
-//列表
-func (m *` + modelNameCapital + `) GetList(ctx context.Context, search map[string]interface{}, page, pageSize int) (interface{}, error) {
-	session := m.GetListSearch(ctx, search)
-	var list []` + modelNameCapital + `
-	var err error
-	err = session.Order("id desc").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		err = nil
-	}
-	return list, err
-}
-
-func (m *` + modelNameCapital + `) ReturnData(ctx context.Context, thisModel interface{}, search map[string]interface{}) interface{} {
-	` + modelName + ` := thisModel.(` + modelNameCapital + `)
-
-	return nil
-}
-
 
 `
 	addFileName := ""

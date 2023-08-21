@@ -28,6 +28,16 @@ service Merchant{
   rpc MiniGetMerchantList(MiniGetMerchantListReq) returns(MiniGetMerchantListRes){}; // 获取商户列表
   rpc MiniGetCategoryList(MiniGetCategoryListReq) returns(MiniGetCategoryListRes){};
 }
+
+//分类树响应内容
+message CategoryTreeData{
+  //分类id
+  string id = 1;
+  //分类名称
+  string name = 2;
+  //下级分类
+  repeated CategoryTreeData children = 3;
+}
 message GetVisitDetailReq {
   string id = 1;
 }
@@ -397,15 +407,7 @@ message CategoryData{
   CategoryIdNameData pData = 9;//validate:"required=false",comment:"上级分类"
 }
 
-//分类树响应内容
-message CategoryTreeData{
-  //分类id
-  string id = 1;
-  //分类名称
-  string name = 2;
-  //下级分类
-  repeated CategoryTreeData children = 3;
-}
+
 //分类简写信息
 message CategoryIdNameData{
   //分类id
