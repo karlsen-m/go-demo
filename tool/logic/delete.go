@@ -4,13 +4,13 @@ func createDeleteLogic(pkgName, apiName, modelName string) string {
 	modelNameBak := lowerFirstLetter(modelName)
 
 	str := `
-	mate := &` + pkgName + `.MetaRes{
+	meta := &` + pkgName + `.MetaRes{
 		RequestId: tracing.GetRequestId(l.ctx),
 		Code:      ApiCode.SUCCESS,
 		Msg:       response.NewMessageConstant().SuccessMsg,
 	}
 	resp := &` + pkgName + `.` + apiName + `Res{
-		Meta: mate,
+		Meta: meta,
 	}
 	id := cast.ToUint64(in.GetId())
 	if id <= 0 {

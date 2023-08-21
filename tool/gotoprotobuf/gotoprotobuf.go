@@ -89,9 +89,9 @@ func Gotoprotobuf(fileName string) {
 				fmt.Println("\n")
 				fmt.Println("\n")
 				fmt.Println(fmt.Sprintf("rpc Edit%s(Edit%sReq) returns(Edit%sRes){};", data.MessageName, data.MessageName, data.MessageName))
-				fmt.Println(fmt.Sprintf("rpc Get%sDetail(Get%sReq) returns(Get%sRes){};", data.MessageName, data.MessageName, data.MessageName))
+				fmt.Println(fmt.Sprintf("rpc Get%sDetail(Get%sDetailReq) returns(Get%sDetailRes){};", data.MessageName, data.MessageName, data.MessageName))
 				fmt.Println(fmt.Sprintf("rpc Del%s(Del%sReq) returns(Del%sRes){};", data.MessageName, data.MessageName, data.MessageName))
-				fmt.Println(fmt.Sprintf("rpc Get%sList(Get%sReq) returns(Get%sRes){};", data.MessageName, data.MessageName, data.MessageName))
+				fmt.Println(fmt.Sprintf("rpc Get%sList(Get%sListReq) returns(Get%sListRes){};", data.MessageName, data.MessageName, data.MessageName))
 				fmt.Println("\n")
 				GetDetailBuf(data.MessageName)
 				DeleteBuf(data.MessageName)
@@ -151,10 +151,10 @@ func EditBuf(serviceName string, fieldDatas []FieldData) {
 }
 
 func GetDetailBuf(serviceName string) {
-	fmt.Println(fmt.Sprintf("message Get%sReq {", serviceName))
+	fmt.Println(fmt.Sprintf("message Get%sDetailReq {", serviceName))
 	fmt.Println(fmt.Sprintf("    string id = 1;"))
 	fmt.Println(fmt.Sprintf("}"))
-	fmt.Println(fmt.Sprintf("message Get%sRes {", serviceName))
+	fmt.Println(fmt.Sprintf("message Get%sDetailRes {", serviceName))
 	fmt.Println(fmt.Sprintf("    MetaRes meta = 1;"))
 	fmt.Println(fmt.Sprintf("    %sData data = 2;", serviceName))
 	fmt.Println(fmt.Sprintf("}"))
@@ -180,7 +180,7 @@ func ListBuf(serviceName string) {
 	fmt.Println(fmt.Sprintf("}"))
 	fmt.Println(fmt.Sprintf("message Get%sListData {", serviceName))
 	fmt.Println(fmt.Sprintf("    PageInfo pageInfo = 1;"))
-	fmt.Println(fmt.Sprintf("    repeated %sData list = 4;", serviceName))
+	fmt.Println(fmt.Sprintf("    repeated %sData list = 2;", serviceName))
 	fmt.Println(fmt.Sprintf("}"))
 }
 

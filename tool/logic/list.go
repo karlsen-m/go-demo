@@ -3,13 +3,13 @@ package logic
 func createListLogic(pkgName, apiName, modelName string) string {
 	modelNameBak := lowerFirstLetter(modelName)
 	str := `
-	mate := &` + pkgName + `.MetaRes{
+	meta := &` + pkgName + `.MetaRes{
 		RequestId: tracing.GetRequestId(l.ctx),
 		Code:      ApiCode.SUCCESS,
 		Msg:       response.NewMessageConstant().SuccessMsg,
 	}
 	resp := &` + pkgName + `.` + apiName + `Res{
-		Meta: mate,
+		Meta: meta,
 	}
 	data := &` + pkgName + `.` + apiName + `Data{}
 	page := cast.ToInt(in.GetPage())
