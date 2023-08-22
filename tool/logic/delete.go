@@ -2,7 +2,9 @@ package logic
 
 func createDeleteLogic(pkgName, apiName, modelName string) string {
 	modelNameBak := lowerFirstLetter(modelName)
-
+	if modelNameBak == pkgName {
+		modelNameBak += "M"
+	}
 	str := `
 	meta := &` + pkgName + `.MetaRes{
 		RequestId: tracing.GetRequestId(l.ctx),

@@ -1,8 +1,38 @@
 package logic
 
-func createEditLogic(pkgName, apiName, modelName string) string {
-	modelNameBak := lowerFirstLetter(modelName)
+import (
+	"strings"
+	"tool/protobuftomd"
+)
 
+func createEditLogic(pkgName, apiName, modelName string, messageDataMap map[string][]string) string {
+	modelData := ""
+	modelNameBak := lowerFirstLetter(modelName)
+	if modelNameBak == pkgName {
+		modelNameBak += "M"
+	}
+	reqData, ok := messageDataMap[apiName+"Req"]
+	if ok {
+		for _, v := range reqData {
+			fields := protobuftomd.FieldSplit(v)
+			if len(fields) > 1 {
+				if fields[1] != "id" {
+					if InArrayWithString(fields[0], dataType) {
+						if modelData == "" {
+							modelData += modelNameBak + "." + strings.Title(fields[1]) + " = in.Get" + strings.Title(fields[1]) + "()\n"
+						} else {
+							modelData += "\t" + modelNameBak + "." + strings.Title(fields[1]) + " = in.Get" + strings.Title(fields[1]) + "()\n"
+						}
+
+					} else if fields[0] == "repeated" {
+						modelData += "\t" + modelNameBak + "." + strings.Title(fields[2]) + " = in.Get" + strings.Title(fields[2]) + "()\n"
+					} else {
+						modelData += "\t" + modelNameBak + "." + strings.Title(fields[1]) + " = in.Get" + fields[0] + "()\n"
+					}
+				}
+			}
+		}
+	}
 	str := `
 	meta := &` + pkgName + `.MetaRes{
 		RequestId: tracing.GetRequestId(l.ctx),
@@ -35,7 +65,7 @@ func createEditLogic(pkgName, apiName, modelName string) string {
 	} else {
 		` + modelNameBak + `.Id = models.GenerateId()
 	}
-	` + modelNameBak + `.ChannelId = in.GetChannelId()
+` + modelData + `
 	err = util.SaveById(l.ctx, &` + modelNameBak + `, ` + modelNameBak + `.Id)
 	if err != nil {
 		meta.Code = ApiCode.DB_ERROR

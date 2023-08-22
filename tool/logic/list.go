@@ -1,7 +1,38 @@
 package logic
 
-func createListLogic(pkgName, apiName, modelName string) string {
+import (
+	"strings"
+	"tool/protobuftomd"
+)
+
+func createListLogic(pkgName, apiName, modelName string, messageDataMap map[string][]string) string {
+	searchData := ""
 	modelNameBak := lowerFirstLetter(modelName)
+	if modelNameBak == pkgName {
+		modelNameBak += "M"
+	}
+	reqData, ok := messageDataMap[apiName+"Req"]
+	if ok {
+		for _, v := range reqData {
+			fields := protobuftomd.FieldSplit(v)
+			if len(fields) > 1 {
+				if InArrayWithString(fields[0], dataType) {
+					if fields[1] != "page" && fields[1] != "pageSize" {
+						if searchData == "" {
+							searchData += "search" + `["` + fields[1] + `"] = in.Get` + strings.Title(fields[1]) + "()\n"
+						} else {
+							searchData += "\tsearch" + `["` + fields[1] + `"] = in.Get` + strings.Title(fields[1]) + "()\n"
+						}
+					}
+				} else if fields[0] == "repeated" {
+					searchData += "\tsearch" + `["` + fields[2] + `"] = in.Get` + strings.Title(fields[2]) + "()\n"
+				} else {
+					searchData += "\tsearch" + `["` + fields[1] + `"] = in.Get` + fields[0] + "()\n"
+				}
+			}
+		}
+	}
+
 	str := `
 	meta := &` + pkgName + `.MetaRes{
 		RequestId: tracing.GetRequestId(l.ctx),
@@ -21,7 +52,7 @@ func createListLogic(pkgName, apiName, modelName string) string {
 		pageSize = 10
 	}
 	search := make(map[string]interface{})
-	search["channelId"] = in.GetChannelId()
+	` + searchData + `
 	` + modelNameBak + ` := models.` + modelName + `{}
 	util, err := ` + modelNameBak + `.NewUtil()
 	if err != nil {

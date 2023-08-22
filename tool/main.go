@@ -23,6 +23,7 @@ const (
 )
 
 func main() {
+
 	protoFileName, err := getProtoFile()
 	if err != nil {
 		fmt.Println("Error:  get proto file msg：" + err.Error())
@@ -32,7 +33,12 @@ func main() {
 		fmt.Println("Error: proto file not found")
 		return
 	}
-	pakegeName, err := getPakegeName(protoFileName)
+	comment, err := getProtoComment(protoFileName)
+	if err != nil {
+		fmt.Println("Error:  get proto file comment msg：" + err.Error())
+		return
+	}
+	pakegeName, err := getPakegeName(comment)
 	if err != nil {
 		fmt.Println("Error:  get proto file pakege err：" + err.Error())
 		return
@@ -41,7 +47,6 @@ func main() {
 		fmt.Println("Error: proto file package not found")
 		return
 	}
-
 	if len(os.Args) == 2 {
 		if os.Args[1] == "-h" {
 			fmt.Println("-apimd: <serviceName> protobuf to markdown example apimd  Ping")
@@ -58,10 +63,10 @@ func main() {
 	}
 	switch os.Args[1] {
 	case ApiMd:
-		if len(os.Args) == 3 {
-			protobuftomd.ProtoBufToMd(protoFileName, "")
+		if len(os.Args) < 3 {
+			protobuftomd.ProtoBufToMd(comment, "")
 		} else {
-			protobuftomd.ProtoBufToMd(protoFileName, os.Args[2])
+			protobuftomd.ProtoBufToMd(comment, os.Args[2])
 		}
 		break
 	case ModelBuf:
@@ -76,14 +81,15 @@ func main() {
 		break
 	case CreateLogic:
 		if len(os.Args) >= 5 {
-			logic.CreateLogic(pakegeName, os.Args[2], os.Args[3], os.Args[4])
+			messageDataMap := logic.GetMapMessageToDataWithCommen(comment)
+			logic.CreateLogic(pakegeName, os.Args[2], os.Args[3], os.Args[4], messageDataMap)
 		} else {
 			fmt.Println("Usage: go run main.go <type> <option>")
 		}
 		break
 	case CreateLogicByModel:
 		if len(os.Args) >= 3 {
-			logic.CreateLogicByModel(pakegeName, os.Args[2])
+			logic.CreateLogicByModel(pakegeName, comment, os.Args[2])
 		} else {
 			fmt.Println("Usage: go run main.go <type> <option>")
 		}
@@ -121,12 +127,30 @@ func getProtoFile() (protoFileName string, err error) {
 
 }
 
-func getPakegeName(protoFilename string) (string, error) {
+func getPakegeName(comment []string) (string, error) {
+	packageComment := ""
+	for _, v := range comment {
+		if strings.Contains(v, "package") {
+			packageComment = v
+			break
+		}
+	}
+	if packageComment == "" {
+		return "", errors.New("proto file package not found")
+	}
+	re1 := regexp.MustCompile(`package\s+`)
+	replaced := re1.ReplaceAllString(packageComment, "")
+	re2 := regexp.MustCompile(`;`)
+	packageName := re2.ReplaceAllString(replaced, "")
+	return packageName, nil
+}
+
+func getProtoComment(protoFilename string) ([]string, error) {
 	// 读取 proto 文件内容
 	protoContent, err := ioutil.ReadFile(protoFilename)
 	if err != nil {
 
-		return "", errors.New(fmt.Sprintf("Error parsing file: %v\n", err))
+		return []string{}, errors.New(fmt.Sprintf("Error parsing file: %v\n", err))
 	}
 	protoComment := string(protoContent)
 
@@ -145,19 +169,5 @@ func getPakegeName(protoFilename string) (string, error) {
 
 	comment := []string{}
 	comment = strings.Split(protoComment, "\n")
-	packageComment := ""
-	for _, v := range comment {
-		if strings.Contains(v, "package") {
-			packageComment = v
-			break
-		}
-	}
-	if packageComment == "" {
-		return "", errors.New("proto file package not found")
-	}
-	re1 := regexp.MustCompile(`package\s+`)
-	replaced := re1.ReplaceAllString(packageComment, "")
-	re2 := regexp.MustCompile(`;`)
-	packageName := re2.ReplaceAllString(replaced, "")
-	return packageName, nil
+	return comment, nil
 }

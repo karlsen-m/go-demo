@@ -44,30 +44,30 @@ var (
 	}
 )
 
-func ProtoBufToMd(fileName string, serviceName string) {
+func ProtoBufToMd(comment []string, serviceName string) {
 	// 读取 proto 文件内容
-	protoContent, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		fmt.Printf("Error parsing file: %v\n", err)
-		return
-	}
-	protoComment := string(protoContent)
-
-	// 匹配并替换单行注释
-	//pattern1 := regexp.MustCompile(`//.*`)
-	pattern1 := regexp.MustCompile(`\n\s*\/\/.*?\n`)
-	protoComment = pattern1.ReplaceAllString(protoComment, "\n")
-
-	// 匹配并替换段落注释
-	pattern2 := regexp.MustCompile(`/\*[\s\S]*?\*/`)
-	protoComment = pattern2.ReplaceAllString(protoComment, "")
-
-	// 匹配空行
-	pattern3 := regexp.MustCompile(`\n{2,}`)
-	protoComment = pattern3.ReplaceAllString(protoComment, "\n")
-
-	comment := []string{}
-	comment = strings.Split(protoComment, "\n")
+	//protoContent, err := ioutil.ReadFile(fileName)
+	//if err != nil {
+	//	fmt.Printf("Error parsing file: %v\n", err)
+	//	return
+	//}
+	//protoComment := string(protoContent)
+	//
+	//// 匹配并替换单行注释
+	////pattern1 := regexp.MustCompile(`//.*`)
+	//pattern1 := regexp.MustCompile(`\n\s*\/\/.*?\n`)
+	//protoComment = pattern1.ReplaceAllString(protoComment, "\n")
+	//
+	//// 匹配并替换段落注释
+	//pattern2 := regexp.MustCompile(`/\*[\s\S]*?\*/`)
+	//protoComment = pattern2.ReplaceAllString(protoComment, "")
+	//
+	//// 匹配空行
+	//pattern3 := regexp.MustCompile(`\n{2,}`)
+	//protoComment = pattern3.ReplaceAllString(protoComment, "\n")
+	//
+	//comment := []string{}
+	//comment = strings.Split(protoComment, "\n")
 	messageStartNum := 0
 	for i, v := range comment {
 		if strings.Contains(v, "message") {
@@ -242,7 +242,7 @@ func ProtoBufToMd(fileName string, serviceName string) {
 	} else {
 		mdFileName = fmt.Sprintf("%s.md", protoName)
 	}
-	err = ioutil.WriteFile(mdFileName, []byte(md), os.ModePerm)
+	err := ioutil.WriteFile(mdFileName, []byte(md), os.ModePerm)
 	if err != nil {
 		fmt.Println("create file error：" + err.Error())
 		return
@@ -267,7 +267,7 @@ START:
 					//一个大的message结束
 					extractData := make([]string, len(messageComment[:i+1]))
 					_ = copy(extractData, messageComment[:i+1])
-					data := extractMessagesData("", extractData)
+					data := ExtractMessagesData("", extractData)
 					messageData = append(messageData, data...)
 					messageComment = messageComment[i+1:]
 					goto START
@@ -303,7 +303,7 @@ func getMessageJson(text []string, messageDataMap map[string][]string, messageNa
 		_ = copy(fields, text[3:])
 		for _, field := range fields {
 			commet := strings.Split(field, ";")
-			fieldCommen := fieldSplit(commet[0])
+			fieldCommen := FieldSplit(commet[0])
 			if len(fieldCommen) >= 4 {
 				if fieldCommen[0] == "repeated" {
 					//数组
@@ -529,7 +529,7 @@ func getMessageMarkdown(text []string, messageDataMap map[string][]string, messa
 		_ = copy(fields, text[3:])
 		for _, field := range fields {
 			commet := strings.Split(field, ";")
-			fieldCommen := fieldSplit(commet[0])
+			fieldCommen := FieldSplit(commet[0])
 			fieldType := ""
 			if len(fieldCommen) >= 4 {
 				if fieldCommen[0] == "repeated" {
@@ -631,7 +631,7 @@ var mdMod string = `|参数名|类型|必填|说明|
 
 func analyzeFieldToMarkdown(messageDataMap map[string][]string, messageName string, text string) (md string) {
 	commet := strings.Split(text, ";")
-	fields := fieldSplit(commet[0])
+	fields := FieldSplit(commet[0])
 	fieldType := ""
 	if len(fields) >= 4 {
 		if fields[0] == "repeated" {
@@ -704,7 +704,7 @@ func serviceStrSplit(text string) (fields map[string]string) {
 	return fields
 }
 
-func fieldSplit(text string) (fields []string) {
+func FieldSplit(text string) (fields []string) {
 	re := regexp.MustCompile(`^\s*(.*)$`)
 	result := re.FindStringSubmatch(text)[1]
 	re2 := regexp.MustCompile(`\s+`)
@@ -732,7 +732,7 @@ func analyzeDescComment(text string) (comment string) {
 	return comment
 }
 
-func extractMessagesData(messageName string, comment []string) [][]string {
+func ExtractMessagesData(messageName string, comment []string) [][]string {
 	data := [][]string{}
 	notMassage := make([]string, 0)
 START:
@@ -746,9 +746,9 @@ START:
 			res := [][]string{}
 		CTN:
 			if isCtn {
-				res = extractMessagesData(messageName, comment[0:])
+				res = ExtractMessagesData(messageName, comment[0:])
 			} else {
-				res = extractMessagesData(messageName, comment[i-delNum:])
+				res = ExtractMessagesData(messageName, comment[i-delNum:])
 			}
 
 			data = append(data, res...)
