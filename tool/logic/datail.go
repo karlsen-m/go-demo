@@ -14,6 +14,12 @@ func createDetailLogic(pkgName, apiName, modelName string) string {
 	resp := &` + pkgName + `.` + apiName + `Res{
 		Meta: meta,
 	}
+	err := in.Validate()
+	if err != nil{
+		meta.Code = ApiCode.REQ_DATA_ERROR
+		meta.Msg = err.Error()
+		return resp, nil
+	}
 	id := cast.ToUint64(in.GetId())
 	if id <= 0 {
 		meta.Code = ApiCode.REQ_DATA_ERROR

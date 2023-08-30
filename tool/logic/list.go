@@ -42,6 +42,12 @@ func createListLogic(pkgName, apiName, modelName string, messageDataMap map[stri
 	resp := &` + pkgName + `.` + apiName + `Res{
 		Meta: meta,
 	}
+	err := in.Validate()
+	if err != nil{
+		meta.Code = ApiCode.REQ_DATA_ERROR
+		meta.Msg = err.Error()
+		return resp, nil
+	}
 	data := &` + pkgName + `.` + apiName + `Data{}
 	page := cast.ToInt(in.GetPage())
 	pageSize := cast.ToInt(in.GetPageSize())
