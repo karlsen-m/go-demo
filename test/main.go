@@ -1,32 +1,21 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"test/models"
+	"github.com/tealeg/xlsx"
 )
 
 func main() {
-	fmt.Println("Hello, world!")
-	modelClient := models.NewModelClient("admin")
-	if modelClient == nil {
-		fmt.Println("modelClient is nil")
-		return
-	}
-	ctx := context.Background()
-
-	modelDataI, err := modelClient.GetById(ctx, 123)
+	xlFile, err := xlsx.OpenFile("./123123123.xlsx")
 	if err != nil {
-		fmt.Println("err:", err)
-		return
+		panic(err)
 	}
-	if modelDataI != nil {
-		modelClient.ReturnData(ctx, modelDataI, nil)
+	for _, sheet := range xlFile.Sheets {
+		for _, row := range sheet.Rows {
+			for _, cell := range row.Cells {
+				text := cell.String()
+				println(text)
+			}
+		}
 	}
-
-	modelData := modelDataI.(models.Admin)
-	modelData.Save(ctx)
-	modelData.ReturnData(ctx, modelData, nil)
-	fmt.Println("modelData:", modelData)
 
 }

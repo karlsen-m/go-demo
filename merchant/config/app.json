@@ -1,0 +1,32 @@
+{
+    "Name": "merchant.rpc",
+    "ListenOn": "0.0.0.0:5041",
+    "Timeout": 30000,
+    "appEnv": "local",
+    "appDebug": true,
+    "appName": "商户中心微服务",
+    "appEnName": "merchant-service",
+    "driver": {
+        "mysql": "default",
+        "redis": "default"
+    },
+    "mysql": {
+        "default": {
+            "database": "merchant",
+            "prefix": "merchant_",
+            "connMaxLifetime": 3600,
+            "host": "tdsqlshard-iakxmw2r.sql.tencentcdb.com",
+            "port": 86,
+            "username": "imden",
+            "password": "XzDaLR3UDAQ0MgVR"
+        }
+    },
+    "redis": {
+        "default": {
+            "host": "127.0.0.1",
+            "port": 6379,
+            "password": "",
+            "database": 0
+        }
+    }
+}

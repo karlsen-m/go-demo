@@ -118,7 +118,7 @@ func ProtoBufToMd(comment []string, serviceName string) {
 		serviceProtoDataMap := []map[string]string{}
 		if len(serviceProtoData) > 0 {
 			for _, v := range serviceProtoData {
-				serviceData := serviceStrSplit(v)
+				serviceData := ServiceStrSplit(v)
 				if serviceData != nil {
 					serviceComment, isOk := serviceData["commen"]
 					if isOk {
@@ -174,14 +174,14 @@ func ProtoBufToMd(comment []string, serviceName string) {
 %s
 %s
 %s
-`, md, v["serviceName"], protoName, v["serviceName"], GetMethod(v["serviceName"]), reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
+`, md, v["serviceName"], strings.Title(protoName), v["serviceName"], GetMethod(v["serviceName"]), reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
 			}
 		}
 	} else {
 		serviceProtoDataMap := []map[string]string{}
 		if len(serviceProtoData) > 0 {
 			for _, v := range serviceProtoData {
-				serviceData := serviceStrSplit(v)
+				serviceData := ServiceStrSplit(v)
 
 				serviceProtoDataMap = append(serviceProtoDataMap, serviceData)
 			}
@@ -231,7 +231,7 @@ func ProtoBufToMd(comment []string, serviceName string) {
 %s
 %s
 %s
-`, md, v["serviceName"], protoName, v["serviceName"], GetMethod(v["serviceName"]), reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
+`, md, v["serviceName"], strings.Title(protoName), v["serviceName"], GetMethod(v["serviceName"]), reqMessageMd, "````", reqMessageJosn, "````", resMessageMd, "````", resMessageJosn, "````")
 				break
 			}
 		}
@@ -684,7 +684,7 @@ func analyzeFieldToMarkdown(messageDataMap map[string][]string, messageName stri
 	return
 }
 
-func serviceStrSplit(text string) (fields map[string]string) {
+func ServiceStrSplit(text string) (fields map[string]string) {
 	fields = make(map[string]string)
 	data := strings.Split(text, "rpc")
 	re := regexp.MustCompile(`^\s*(.*)$`)

@@ -8,10 +8,12 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"tool/cmd"
 	"tool/gotoprotobuf"
 	"tool/logic"
 	"tool/models"
 	"tool/protobuftomd"
+	"tool/rpcvalidate"
 )
 
 const (
@@ -20,6 +22,8 @@ const (
 	CreateModel        = "add_model"
 	CreateLogic        = "add_logic"
 	CreateLogicByModel = "model_logic"
+	CreateVerify       = "add_verify"
+	Protoc             = "protoc"
 )
 
 func main() {
@@ -47,6 +51,7 @@ func main() {
 		fmt.Println("Error: proto file package not found")
 		return
 	}
+
 	if len(os.Args) == 2 {
 		if os.Args[1] == "-h" {
 			fmt.Println("-apimd: <serviceName> protobuf to markdown example apimd  Ping")
@@ -54,6 +59,8 @@ func main() {
 			fmt.Println("-add_model: <modelName>  <fileName> modelName create model struct to file example add_model admin ./models/admin.go")
 			fmt.Println("-add_logic:  <modelName> <logicType> <apiName> create logic struct to file example add_logic admin edit EditAdmin")
 			fmt.Println("-model_logic:  <modelName> create logic struct to file example model_logic admin")
+			fmt.Println("-add_verify:  create validate file by " + pakegeName + ".proto")
+			fmt.Println("-protoc:  crrpc protoc " + pakegeName + ".proto --go_out=. --go-grpc_out=. --zrpc_out=.")
 			return
 		}
 	}
@@ -62,6 +69,12 @@ func main() {
 		return
 	}
 	switch os.Args[1] {
+	case Protoc:
+		cmd.ZeroProtoc(pakegeName)
+		break
+	case CreateVerify:
+		rpcvalidate.AddValidate(pakegeName, comment)
+		break
 	case ApiMd:
 		if len(os.Args) < 3 {
 			protobuftomd.ProtoBufToMd(comment, "")
