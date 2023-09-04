@@ -23,7 +23,7 @@ const (
 	CreateLogic        = "add_logic"
 	CreateLogicByModel = "model_logic"
 	CreateVerify       = "add_verify"
-	Protoc             = "protoc"
+	Cmd                = "cmd"
 )
 
 func main() {
@@ -60,7 +60,7 @@ func main() {
 			fmt.Println("-add_logic:  <modelName> <logicType> <apiName> create logic struct to file example add_logic admin edit EditAdmin")
 			fmt.Println("-model_logic:  <modelName> create logic struct to file example model_logic admin")
 			fmt.Println("-add_verify:  create validate file by " + pakegeName + ".proto")
-			fmt.Println("-protoc:  crrpc protoc " + pakegeName + ".proto --go_out=. --go-grpc_out=. --zrpc_out=.")
+			fmt.Println("-cmd:  cmd protoc")
 			return
 		}
 	}
@@ -69,8 +69,8 @@ func main() {
 		return
 	}
 	switch os.Args[1] {
-	case Protoc:
-		cmd.ZeroProtoc(pakegeName)
+	case Cmd:
+		cmd.Cmd(pakegeName, os.Args[2])
 		break
 	case CreateVerify:
 		rpcvalidate.AddValidate(pakegeName, comment)
