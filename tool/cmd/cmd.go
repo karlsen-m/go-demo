@@ -123,7 +123,7 @@ func GetFrame(pakegeName string) (frame string) {
 
 	// 遍历当前目录中的文件
 	for _, file := range currentDir {
-		if file.Name() == pakegeName+".go" {
+		if file.Name() == pakegeName+".go" || "main.go" == file.Name() {
 			frame = "zero"
 			return
 		}
