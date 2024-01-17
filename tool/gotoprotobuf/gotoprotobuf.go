@@ -85,7 +85,7 @@ func Gotoprotobuf(fileName string) {
 	if len(protoData) > 0 {
 		for _, data := range protoData {
 			messageName := data.MessageName
-			if strings.Contains(fileName, strings.ToLower(messageName[:1])+messageName[1:]) {
+			if strings.Contains(strings.ToLower(fileName), strings.ToLower(messageName)) {
 				fmt.Println("\n")
 				fmt.Println("\n")
 				fmt.Println(fmt.Sprintf("rpc Edit%s(Edit%sReq) returns(Edit%sRes){};", data.MessageName, data.MessageName, data.MessageName))
