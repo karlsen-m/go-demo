@@ -7,7 +7,6 @@ import (
 	"go/token"
 	"reflect"
 	"strings"
-	"time"
 )
 
 type Message struct {
@@ -103,7 +102,7 @@ func Gotoprotobuf(fileName string) {
 		for _, data := range protoData {
 			messageName := data.MessageName
 			isBink := false
-			if strings.Contains(fileName, strings.ToLower(messageName[:1])+messageName[1:]) {
+			if strings.Contains(strings.ToLower(fileName), strings.ToLower(messageName)) {
 				isBink = true
 				fmt.Println(fmt.Sprintf("message %sData {", data.MessageName))
 			} else {
@@ -152,7 +151,7 @@ func EditBuf(serviceName string, fieldDatas []FieldData) {
 
 func GetDetailBuf(serviceName string) {
 	fmt.Println(fmt.Sprintf("message Get%sDetailReq {", serviceName))
-	fmt.Println(fmt.Sprintf("    string id = 1;"))
+	fmt.Println(fmt.Sprintf(`    string id = 1;  //validate:"required=false"`))
 	fmt.Println(fmt.Sprintf("}"))
 	fmt.Println(fmt.Sprintf("message Get%sDetailRes {", serviceName))
 	fmt.Println(fmt.Sprintf("    MetaRes meta = 1;"))
@@ -161,7 +160,7 @@ func GetDetailBuf(serviceName string) {
 }
 func DeleteBuf(serviceName string) {
 	fmt.Println(fmt.Sprintf("message Del%sReq {", serviceName))
-	fmt.Println(fmt.Sprintf("    string id = 1;"))
+	fmt.Println(fmt.Sprintf(`    string id = 1;  //validate:"required=false"`))
 	fmt.Println(fmt.Sprintf(`    Operator operator = 2;  //validate:"required=false",comment:"操作人，网关注入"`))
 	fmt.Println(fmt.Sprintf("}"))
 	fmt.Println(fmt.Sprintf("message Del%sRes {", serviceName))
@@ -198,79 +197,5 @@ func getFieldTypeName(expr ast.Expr) string {
 		return fmt.Sprintf("map[%s]%s", getFieldTypeName(t.Key), getFieldTypeName(t.Value))
 	default:
 		return reflect.TypeOf(expr).String()
-	}
-}
-
-type User struct{}
-
-func structToProto() {
-	demo := User{}
-	v := reflect.ValueOf(demo)
-	t := v.Type()
-	data := []FieldData{}
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if field.Kind() == reflect.Struct && t.Field(i).Type != reflect.TypeOf(time.Time{}) {
-			for j := 0; j < field.NumField(); j++ {
-				gormTag := field.Type().Field(j).Tag.Get("gorm")
-				isComment := strings.Contains(gormTag, "comment:")
-				comment := ""
-				if isComment {
-					comment = strings.Split(gormTag, "comment:")[1]
-				}
-				if field.Type().Field(j).Type.Kind() == reflect.Bool {
-					message := FieldData{
-						Field:     field.Type().Field(j).Tag.Get("json"),
-						FieldType: "bool",
-						Comment:   comment,
-					}
-					data = append(data, message)
-				} else {
-					message := FieldData{
-						Field:     field.Type().Field(j).Tag.Get("json"),
-						FieldType: "string",
-						Comment:   comment,
-					}
-					data = append(data, message)
-				}
-			}
-		} else {
-			tag := t.Field(i).Tag.Get("json")
-			gormTag := t.Field(i).Tag.Get("gorm")
-			isComment := strings.Contains(gormTag, "comment:")
-			comment := ""
-			if isComment {
-				comment = strings.Split(gormTag, "comment:")[1]
-			}
-
-			if t.Field(i).Type.Kind() == reflect.Bool {
-				message := FieldData{
-					Field:     tag,
-					FieldType: "bool",
-					Comment:   comment,
-				}
-				data = append(data, message)
-			} else {
-				message := FieldData{
-					Field:     tag,
-					FieldType: "string",
-					Comment:   comment,
-				}
-				data = append(data, message)
-			}
-
-		}
-	}
-	fmt.Println(data)
-	if len(data) > 0 {
-		fmt.Println("message User {")
-		for i, d := range data {
-			if d.Comment != "" {
-				fmt.Println(fmt.Sprintf(`%s %s = %d;//validate:"required=true",comment:"%s"`, d.FieldType, d.Field, i+1, d.Comment))
-			} else {
-				fmt.Println(fmt.Sprintf("%s %s = %d;", d.FieldType, d.Field, i+1))
-			}
-		}
-		fmt.Println(fmt.Sprintln("}"))
 	}
 }
